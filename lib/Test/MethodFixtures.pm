@@ -36,7 +36,13 @@ sub new {
 }
 
 sub store {
-    my ( $self, $method, $key, $input, $output ) = @_;
+    my ( $self, $args ) = @_;
+
+    my $method = $args->{method} or croak "'method' missing";
+    my $key    = $args->{key}    or croak "'key' missing";
+    my $input  = $args->{input}  or croak "'input' missing";
+    my $output = $args->{output};
+    croak "'output' missing" unless defined $output;
 
     # for now only store on disk
     my $storage = path( $self->storage || '.methodfixtures', $method );
@@ -48,7 +54,11 @@ sub store {
 }
 
 sub retrieve {
-    my ( $self, $method, $key, $input ) = @_;
+    my ( $self, $args ) = @_;
+
+    my $method = $args->{method} or croak "'method' missing";
+    my $key    = $args->{key}    or croak "'key' missing";
+    my $input  = $args->{input}  or croak "'input' missing";
 
     my $storage = path( $self->storage || '.methodfixtures', $method );
     my $stored = $storage->child($key)->slurp_utf8();
@@ -58,20 +68,27 @@ sub retrieve {
     return $data->{output};
 }
 
+# pass in optional coderef to return list of values to use
+# (for example to stringify objects)
+sub get_key_sub {
+    my ( $self, $value ) = @_;
+
+    return sub {
+        my @args = @_;
+        if ($value) {
+            my @replace = $value->(@args);
+            splice( @args, 0, scalar(@replace), @replace );
+        }
+        return md5_hex dump @args;
+    };
+}
+
 sub mock {
     my $self = shift;
 
     while ( my ( $name, $value ) = splice @_, 0, 2 ) {
 
-        my $get_key = sub {
-            my @args = @_;
-            if ($value) {
-                my @replace = $value->(@args);
-                splice( @args, 0, scalar(@replace), @replace );
-            }
-
-            return md5_hex dump @args;
-        };
+        my $get_key = $self->get_key_sub($value);
 
         wrap $name => pre => sub {
 
@@ -82,7 +99,12 @@ sub mock {
 
                 # add cached value into extra arg,
                 # so original sub will not be called
-                $_[-1] = $self->retrieve( $name, $get_key->(@args), \@args );
+                $_[-1] = $self->retrieve(
+                    {   method => $name,
+                        key    => $get_key->(@args),
+                        input  => \@args,
+                    }
+                );
             }
         };
 
@@ -93,7 +115,13 @@ sub mock {
                 my (@args) = @_;
                 my $result = pop @args;
 
-                $self->store( $name, $get_key->(@args), \@args, $result );
+                $self->store(
+                    {   method => $name,
+                        key    => $get_key->(@args),
+                        input  => \@args,
+                        output => $result,
+                    }
+                );
             }
         };
 

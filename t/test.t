@@ -9,7 +9,8 @@ BEGIN {
 
     sub foo {
         $expensive_call++;
-        return 3;
+        my $arg = $_[0] || 0;
+        return $arg + 5;
     }
 
     package Mocked::Args;
@@ -49,15 +50,32 @@ subtest Simple => sub {
 
         ok $mocker->mock('Mocked::Simple::foo'), "mocked simple sub";
 
-        is Mocked::Simple::foo(), 3, "call mocked function";
+        is Mocked::Simple::foo(), 5, "call mocked function";
 
         is $Mocked::Simple::expensive_call, 1, "called once";
 
         ok $mocker->mode('playback'), "set mode to playback";
 
-        is Mocked::Simple::foo(), 3, "call mocked function";
+        is Mocked::Simple::foo(), 5, "call mocked function";
 
         is $Mocked::Simple::expensive_call, 1, "still only called once";
+};
+
+subtest Simple => sub {
+
+        ok $mocker->mode('record'), "set mode to record";
+
+        ok $mocker->mock('Mocked::Simple::foo'), "mocked simple sub";
+
+        is Mocked::Simple::foo(1), 6, "call mocked function";
+
+        is $Mocked::Simple::expensive_call, 2, "called once";
+
+        ok $mocker->mode('playback'), "set mode to playback";
+
+        is Mocked::Simple::foo(1), 6, "call mocked function";
+
+        is $Mocked::Simple::expensive_call, 2, "still only called once";
 };
 
 subtest Args => sub {
