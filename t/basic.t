@@ -34,8 +34,6 @@ BEGIN {
         $self->{expensive_call}++;
         return $args[0] * $args[1] * $self->{multiplier};
     }
-
-    1;
 };
 
 use Test::More;
