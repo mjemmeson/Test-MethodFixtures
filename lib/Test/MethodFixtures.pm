@@ -6,10 +6,7 @@ package Test::MethodFixtures;
 our $VERSION = '0.01';
 
 use Carp;
-use Data::Dump qw( dump );
-use Digest::MD5 qw( md5_hex );;
 use Hook::LexWrap qw( wrap );
-use Path::Tiny;
 use Scalar::Util qw( weaken );
 
 use base 'Class::Accessor::Fast';
@@ -30,11 +27,18 @@ sub import {
 sub new {
     my ( $class, %args ) = @_;
 
+    my $storage = $args{storage};
+
+    unless ($storage) {
+        require Test::MethodFixtures::Storage::File;
+        $storage = Test::MethodFixtures::Storage::File->new(
+            { dir => 't/.methodfixtures' } );
+    }
+
     return $class->SUPER::new(
         {   mode => $mode || 'playback',    #
-            storage  => 't/.methodfixtures',
+            storage  => $storage,
             _wrapped => {},
-            %args,
         }
     );
 }
@@ -48,12 +52,7 @@ sub store {
     my $output = $args->{output};
     croak "'output' missing" unless defined $output || $args->{no_output};
 
-    my $dump = dump { input => $input, output => $output, version => $VERSION };
-
-    # for now only store on disk
-    my $storage = path( $self->storage, $method );
-    $storage->mkpath;
-    $storage->child($key)->spew_utf8($dump);
+    $self->storage->store($args);
 
     return $self;
 }
@@ -65,11 +64,7 @@ sub retrieve {
     my $key    = $args->{key}    or croak "'key' missing";
     my $input  = $args->{input}  or croak "'input' missing";
 
-    my $storage = path( $self->storage, $method );
-    my $stored = $storage->child($key)->slurp_utf8();
-
-    my $data = eval $stored;
-    return $data->{output};
+    return $self->storage->retrieve($args);
 }
 
 # pass in optional coderef to return list of values to use
@@ -83,7 +78,7 @@ sub get_key_sub {
             my @replace = $value->(@args);
             splice( @args, 0, scalar(@replace), @replace );
         }
-        return md5_hex dump( $config, @args );
+        return [ $config, @args ];
     };
 }
 
@@ -146,6 +141,8 @@ sub mock {
 1;
 
 __END__
+
+=pod
 
 =head1 NAME
 
