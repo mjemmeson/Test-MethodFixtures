@@ -29,10 +29,12 @@ sub new {
 
     my $storage = $args{storage};
 
-    unless ($storage) {
+    if ( ref $storage ) {
+
+    } else {
         require Test::MethodFixtures::Storage::File;
         $storage = Test::MethodFixtures::Storage::File->new(
-            { dir => 't/.methodfixtures' } );
+            { dir => $storage || 't/.methodfixtures' } );
     }
 
     return $class->SUPER::new(
@@ -52,7 +54,7 @@ sub store {
     my $output = $args->{output};
     croak "'output' missing" unless defined $output || $args->{no_output};
 
-    $self->storage->store($args);
+    $self->storage->store( { %{$args}, version => $VERSION } );
 
     return $self;
 }
@@ -64,7 +66,7 @@ sub retrieve {
     my $key    = $args->{key}    or croak "'key' missing";
     my $input  = $args->{input}  or croak "'input' missing";
 
-    return $self->storage->retrieve($args);
+    return $self->storage->retrieve( { %{$args}, version => $VERSION } );
 }
 
 # pass in optional coderef to return list of values to use
@@ -159,7 +161,20 @@ that call during testing.
 
     use Test::MethodFixtures mode => 'record';
 
-    my $mocker = Test::MethodFixtures->new( mode => 'record' );
+    my $mocker = Test::MethodFixtures->new(
+        mode => 'record',
+
+        # optionally specify alternative storage
+
+        # override default storage directory
+        storage => '/path/to/storage',
+
+        # use alternative Test::MethodFixtures::Storage object
+        storage => $storage_obj,
+
+        # load alternative Test::MethodFixtures::Storage:: class
+        storage => { AltStorage => \%options },
+    );
 
     # simple function - can store all arguments
     $mocker->mock("My::Package::Method");
@@ -179,16 +194,6 @@ that call during testing.
             );
         }
     );
-
-=head1 TODO
-
-=over
-
-=item *
-
-probably need to handle when same method called in scalar and list context
-
-=back
 
 =cut
 
