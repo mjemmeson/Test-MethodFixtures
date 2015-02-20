@@ -12,18 +12,6 @@ use base 'Class::Accessor::Fast';
 sub store    { croak "store() not implemented" }
 sub retrieve { croak "retrieve() not implemented" }
 
-sub version {
-    my $class = shift;
- $class = ref $class || $class;
-
-
-warn "CLASS: $class";
-
-
-#    return "${class}::VERSION";
-}
-
-
 __END__
 
 =pod

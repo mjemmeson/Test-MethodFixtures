@@ -64,11 +64,6 @@ sub new {
 sub store {
     my ( $self, $args ) = @_;
 
-    croak "'method' missing" unless $args->{method};
-    croak "'key' missing"    unless $args->{key};
-    croak "'input' missing"  unless $args->{input};
-    croak "'output' missing" unless exists $args->{output};
-
     $self->storage->store( { %{$args}, version => $VERSION } );
 
     return $self;
@@ -77,22 +72,22 @@ sub store {
 sub retrieve {
     my ( $self, $args ) = @_;
 
-    croak "'method' missing" unless $args->{method};
-    croak "'key' missing"    unless $args->{key};
-
     my $stored = $self->storage->retrieve( { %{$args}, version => $VERSION } );
 
-    my $v_this = version->parse($VERSION);
-    my $v_that = version->parse( $stored->{version} );
-    carp "Data saved with a more recent version of Test::MethodFixtures!"
-        if $v_that > $v_this;
-
-    $v_this = version->parse($VERSION);
-    $v_that = version->parse( $stored->{storage_version} );
-    carp "Data saved with a more recent version of " . __PACKAGE__ . "!"
-        if $v_that > $v_this;
+    _compare_versions( $self,                $stored->{version} );
+    _compare_versions( $self->storage_class, $stored->{storage_version} );
 
     return $stored->{output};
+}
+
+sub _compare_versions {
+    my ($class,$version) = @_;
+
+    my $v_this = version->parse( $class->VERSION );
+    my $v_that = version->parse( $version );
+
+    carp "Data saved with a more recent version ($version) of $class!"
+        if $v_that > $v_this;
 }
 
 # pass in optional coderef to return list of values to use
@@ -164,6 +159,10 @@ sub mock {
     }
 
     return $self;
+}
+
+sub storage_class {
+    return ref shift->storage;
 }
 
 1;
