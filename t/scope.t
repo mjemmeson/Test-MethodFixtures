@@ -1,6 +1,9 @@
 use strict;
 use warnings;
 
+use Test::More;
+use Test::MethodFixtures;
+
 BEGIN {
 
     package Mocked::Simple;
@@ -12,11 +15,7 @@ BEGIN {
         my $arg = $_[0] || 0;
         return $arg + 5;
     }
-};
-
-use Test::More;
-
-use Test::MethodFixtures;
+}
 
 subtest in_scope => sub {
 

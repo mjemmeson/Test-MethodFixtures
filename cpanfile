@@ -11,5 +11,6 @@ requires "strict"        => "0";
 requires "version"       => "0";
 requires "warnings"      => "0";
 
-test_requires "Test::More" => "0";
+test_requires "Test::More"     => "0";
+test_requires "Test::Requires" => "0";
 

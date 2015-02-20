@@ -14,51 +14,59 @@ use base 'Class::Accessor::Fast';
 
 __PACKAGE__->mk_accessors(qw( mode storage _wrapped ));
 
-our $mode;
+our ( $MODE, $STORAGE );
 
 sub import {
     my ( $class, %args ) = @_;
 
-    if ( $mode = $args{'-mode'} ) {
-        croak "Invalid mode '$mode'"
-            unless $mode eq 'playback' or $mode eq 'record';
+    if ( $MODE = $args{'-mode'} ) {
+        croak "Invalid mode '$MODE'"
+            unless $MODE eq 'playback' or $MODE eq 'record';
     }
+
+    $STORAGE = $args{'-storage'};
 }
 
 sub new {
     my ( $class, $args ) = @_;
 
-    my $storage = $args->{storage};
-
-    if ( ref $storage ) {
-
-        unless ( blessed $storage ) {
-
-            my ( $storage_class, $storage_args ) = %{$storage};
-
-            unless ( $storage_class =~ s/^\+// ) {
-                $storage_class
-                    = "Test::MethodFixtures::Storage::$storage_class";
-            }
-
-            eval { require $storage_class };
-            croak "Unable to load '$storage_class': $@" if $@;
-
-            $storage = $storage_class->new($storage_args);
-        }
-
-    } else {
-        require Test::MethodFixtures::Storage::File;
-        $storage
-            = Test::MethodFixtures::Storage::File->new( { dir => $storage } );
-    }
+    my $mode    = $args->{mode}    || $MODE;
+    my $storage = $args->{storage} || $STORAGE;
 
     return $class->SUPER::new(
-        {   mode => $mode || 'playback',    #
-            storage  => $storage,
+        {   mode => $mode || 'playback',
+            storage  => _get_storage($storage),
             _wrapped => {},
         }
     );
+}
+
+sub _get_storage {
+    my $storage = shift;
+
+    return $storage if ref $storage && blessed $storage;
+
+    my ( $storage_class, $storage_args );
+
+    if ( ref $storage ) {
+
+        ( $storage_class, $storage_args ) = %{$storage};
+
+        unless ( $storage_class =~ s/^\+// ) {
+            $storage_class = "Test::MethodFixtures::Storage::$storage_class";
+        }
+
+    } else {
+
+        $storage_class = 'Test::MethodFixtures::Storage::File';
+        $storage_args = { dir => $storage };
+
+    }
+
+    eval "require $storage_class" ;
+    croak "Unable to load '$storage_class': $@" if $@;
+
+    return $storage_class->new($storage_args);
 }
 
 sub store {
@@ -74,19 +82,20 @@ sub retrieve {
 
     my $stored = $self->storage->retrieve( { %{$args}, version => $VERSION } );
 
-    _compare_versions( $self,                $stored->{version} );
-    _compare_versions( $self->storage_class, $stored->{storage_version} );
+    _compare_versions( $self,          $stored->{version} );
+    _compare_versions( $self->storage, $stored->{storage_version} );
 
     return $stored->{output};
 }
 
 sub _compare_versions {
-    my ($class,$version) = @_;
+    my ( $class, $version ) = @_;
 
     my $v_this = version->parse( $class->VERSION );
-    my $v_that = version->parse( $version );
+    my $v_that = version->parse($version);
 
-    carp "Data saved with a more recent version ($version) of $class!"
+    carp "Data saved with a more recent version ($version) of "
+        . ref($class) . "!"
         if $v_that > $v_this;
 }
 
@@ -155,14 +164,9 @@ sub mock {
                 );
             }
         };
-
     }
 
     return $self;
-}
-
-sub storage_class {
-    return ref shift->storage;
 }
 
 1;
@@ -184,7 +188,11 @@ that call during testing.
 
 =head1 SYNOPSIS
 
-    use Test::MethodFixtures mode => 'record';
+    use Test::MethodFixtures
+        # optionally specify arguments
+        mode    => 'record',
+        storage => ...
+        ;
 
     my $mocker = Test::MethodFixtures->new(
         mode => 'record',
@@ -219,6 +227,12 @@ that call during testing.
             );
         }
     );
+
+=head1 METHODS
+
+=head2 new
+
+Class method. Constructor
 
 =cut
 

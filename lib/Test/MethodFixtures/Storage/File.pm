@@ -15,10 +15,12 @@ use base 'Test::MethodFixtures::Storage';
 __PACKAGE__->mk_accessors(qw/ dir /);
 
 sub new {
-    my $class = shift;
-    my $args = shift || {};
+    my ( $class, $args ) = @_;
 
-    return $class->SUPER::new( { dir => $args->{dir} || 't/.methodfixtures' } );
+    $args ||= {};
+    $args->{dir} ||= 't/.methodfixtures';
+
+    return $class->SUPER::new($args);
 }
 
 sub store {

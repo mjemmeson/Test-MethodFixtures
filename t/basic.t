@@ -1,6 +1,9 @@
 use strict;
 use warnings;
 
+use Test::More;
+use Test::MethodFixtures;
+
 BEGIN {
 
     package Mocked::Simple;
@@ -34,11 +37,7 @@ BEGIN {
         $self->{expensive_call}++;
         return $args[0] * $args[1] * $self->{multiplier};
     }
-};
-
-use Test::More;
-
-use Test::MethodFixtures;
+}
 
 ok my $mocker = Test::MethodFixtures->new(), "got mocker";
 
