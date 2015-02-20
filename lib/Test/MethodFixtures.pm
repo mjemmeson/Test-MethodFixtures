@@ -7,7 +7,8 @@ our $VERSION = '0.01';
 
 use Carp;
 use Hook::LexWrap qw( wrap );
-use Scalar::Util qw( weaken );
+use Scalar::Util qw( weaken blessed );
+use version;
 
 use base 'Class::Accessor::Fast';
 
@@ -25,16 +26,31 @@ sub import {
 }
 
 sub new {
-    my ( $class, %args ) = @_;
+    my ( $class, $args ) = @_;
 
-    my $storage = $args{storage};
+    my $storage = $args->{storage};
 
     if ( ref $storage ) {
 
+        unless ( blessed $storage ) {
+
+            my ( $storage_class, $storage_args ) = %{$storage};
+
+            unless ( $storage_class =~ s/^\+// ) {
+                $storage_class
+                    = "Test::MethodFixtures::Storage::$storage_class";
+            }
+
+            eval { require $storage_class };
+            croak "Unable to load '$storage_class': $@" if $@;
+
+            $storage = $storage_class->new($storage_args);
+        }
+
     } else {
         require Test::MethodFixtures::Storage::File;
-        $storage = Test::MethodFixtures::Storage::File->new(
-            { dir => $storage || 't/.methodfixtures' } );
+        $storage
+            = Test::MethodFixtures::Storage::File->new( { dir => $storage } );
     }
 
     return $class->SUPER::new(
@@ -48,11 +64,10 @@ sub new {
 sub store {
     my ( $self, $args ) = @_;
 
-    my $method = $args->{method} or croak "'method' missing";
-    my $key    = $args->{key}    or croak "'key' missing";
-    my $input  = $args->{input}  or croak "'input' missing";
-    my $output = $args->{output};
-    croak "'output' missing" unless defined $output || $args->{no_output};
+    croak "'method' missing" unless $args->{method};
+    croak "'key' missing"    unless $args->{key};
+    croak "'input' missing"  unless $args->{input};
+    croak "'output' missing" unless exists $args->{output};
 
     $self->storage->store( { %{$args}, version => $VERSION } );
 
@@ -62,11 +77,22 @@ sub store {
 sub retrieve {
     my ( $self, $args ) = @_;
 
-    my $method = $args->{method} or croak "'method' missing";
-    my $key    = $args->{key}    or croak "'key' missing";
-    my $input  = $args->{input}  or croak "'input' missing";
+    croak "'method' missing" unless $args->{method};
+    croak "'key' missing"    unless $args->{key};
 
-    return $self->storage->retrieve( { %{$args}, version => $VERSION } );
+    my $stored = $self->storage->retrieve( { %{$args}, version => $VERSION } );
+
+    my $v_this = version->parse($VERSION);
+    my $v_that = version->parse( $stored->{version} );
+    carp "Data saved with a more recent version of Test::MethodFixtures!"
+        if $v_that > $v_this;
+
+    $v_this = version->parse($VERSION);
+    $v_that = version->parse( $stored->{storage_version} );
+    carp "Data saved with a more recent version of " . __PACKAGE__ . "!"
+        if $v_that > $v_this;
+
+    return $stored->{output};
 }
 
 # pass in optional coderef to return list of values to use

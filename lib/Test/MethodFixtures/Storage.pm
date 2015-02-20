@@ -3,6 +3,8 @@ package Test::MethodFixtures::Storage;
 use strict;
 use warnings;
 
+our $VERSION = '0.01';
+
 use Carp;
 
 use base 'Class::Accessor::Fast';
@@ -10,7 +12,17 @@ use base 'Class::Accessor::Fast';
 sub store    { croak "store() not implemented" }
 sub retrieve { croak "retrieve() not implemented" }
 
-1;
+sub version {
+    my $class = shift;
+ $class = ref $class || $class;
+
+
+warn "CLASS: $class";
+
+
+#    return "${class}::VERSION";
+}
+
 
 __END__
 
@@ -19,6 +31,18 @@ __END__
 =head1 NAME
 
 Test::MethodFixtures::Storage
+
+=head1 SYNOPSIS
+
+Subclasses should implement the following interface:
+
+    $storage->store(
+        {   method => 'My::Module::mocked_method',
+            input  => ...,
+            output => ...,
+        }
+    );
+
 
 =head1 DESCRIPTION
 

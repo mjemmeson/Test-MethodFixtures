@@ -9,27 +9,35 @@ use Carp;
 use Data::Dump qw( dump );
 use Digest::MD5 qw( md5_hex );;
 use Path::Tiny;
-use version;
 
 use base 'Test::MethodFixtures::Storage';
 
 __PACKAGE__->mk_accessors(qw/ dir /);
 
+sub new {
+    my $class = shift;
+    my $args = shift || {};
+
+    return $class->SUPER::new( { dir => $args->{dir} || 't/.methodfixtures' } );
+}
+
 sub store {
     my ( $self, $args ) = @_;
 
-    my $method  = $args->{method};
-    my $key     = $args->{key};
-    my $input   = $args->{input};
-    my $output  = $args->{output};
-    my $version = $args->{version};
+    my $method = $args->{method};
+    my $key    = $args->{key};
 
-    my $dump = dump { input => $input, output => $output, version => $version };
+    my $dump = dump {
+        input           => $args->{input},
+        output          => $args->{output},
+        version         => $args->{version},
+        storage_version => $VERSION,
+    };
 
     # for now only store on disk
     my $storage = path( $self->dir, $method );
     $storage->mkpath;
-    $storage->child( $self->filename($key) )->spew_utf8($dump);
+    $storage->child( _filename($key) )->spew_utf8($dump);
 
     return $self;
 }
@@ -39,26 +47,18 @@ sub retrieve {
 
     my $method  = $args->{method};
     my $key     = $args->{key};
-    my $input   = $args->{input};
     my $version = $args->{version};
 
     my $storage = path( $self->dir, $method );
-    my $stored = $storage->child( $self->filename($key) )->slurp_utf8();
+    my $stored = $storage->child( _filename($key) )->slurp_utf8();
 
     my $data = eval $stored;
 
-    my $v_this = version->parse($version);
-    my $v_that = version->parse( $data->{version} );
-    carp "Data saved with a more recent version of Test::MethodFixtures!"
-        if $v_that > $v_this;
-
-    return $data->{output};
+    return $data;
 }
 
-sub filename {
-    my ( $self, $key ) = @_;
-
-    return md5_hex dump $key;
+sub _filename {
+    return md5_hex dump shift;
 }
 
 1;
@@ -74,11 +74,14 @@ Test::MethodFixtures::Storage::File
 =head1 SYNOPSIS
 
     my $storage = Test::MethodFixtures::Storage::File->new(
-        { dir => '/path/to/storage' } );
-
-    $storage->store({ method => ..., input => ..., output =>..., key => ..., 
+        {   dir => 't/.methodfixtures'    # default
+        }
+    );
 
 =head1 DESCRIPTION
+
+Subclass of L<Test::MethodFixtures::Storage>. Implements C<store> and
+C<retrieve> methods.
 
 =cut
 
