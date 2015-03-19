@@ -9,7 +9,14 @@ use Carp;
 
 use base 'Class::Accessor::Fast';
 
-sub store    { croak "store() not implemented" }
+sub store {
+    my ( $self, $args ) = @_;
+
+    $args->{ ref $self } = $VERSION;
+
+    return $args;
+}
+
 sub retrieve { croak "retrieve() not implemented" }
 
 __END__
@@ -26,11 +33,17 @@ Subclasses should implement the following interface:
 
     $storage->store(
         {   method => 'My::Module::mocked_method',
+            key    => ...,
             input  => ...,
             output => ...,
         }
     );
 
+    my $stored = $storage->retrieve(
+        {   method => 'My::Module::mocked_method',
+            key    => ...,
+        }
+    );
 
 =head1 DESCRIPTION
 

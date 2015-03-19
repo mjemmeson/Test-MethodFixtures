@@ -1,4 +1,5 @@
 t/.methodfixtures
+local/
 
 /blib/
 /.build/

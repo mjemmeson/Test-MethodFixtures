@@ -12,9 +12,9 @@ use version;
 
 use base 'Class::Accessor::Fast';
 
-__PACKAGE__->mk_accessors(qw( mode storage _wrapped ));
+__PACKAGE__->mk_accessors(qw( mode storage versions _wrapped ));
 
-our ( $MODE, $STORAGE );
+our ( $MODE, $STORAGE, $VERSIONS );
 
 sub import {
     my ( $class, %args ) = @_;
@@ -25,17 +25,21 @@ sub import {
     }
 
     $STORAGE = $args{'-storage'};
+
+    $VERSIONS = $args{'-versions'};
 }
 
 sub new {
     my ( $class, $args ) = @_;
 
-    my $mode    = $args->{mode}    || $MODE;
-    my $storage = $args->{storage} || $STORAGE;
+    my $mode     = $args->{mode}     || $MODE;
+    my $storage  = $args->{storage}  || $STORAGE;
+    my $versions = $args->{versions} || $VERSIONS;
 
     return $class->SUPER::new(
         {   mode => $mode || 'playback',
             storage  => _get_storage($storage),
+            versions => $versions,
             _wrapped => {},
         }
     );
@@ -70,9 +74,14 @@ sub _get_storage {
 }
 
 sub store {
-    my ( $self, $args ) = @_;
+    my $self = shift;
 
-    $self->storage->store( { %{$args}, version => $VERSION } );
+    my %args = %{ shift() };
+
+    $args{ ref $self } = $self->VERSION;
+    $args{ ref $self->storage } = $self->storage->VERSION;
+
+    $self->storage->store( { %args, version => $VERSION } );
 
     return $self;
 }
@@ -80,7 +89,7 @@ sub store {
 sub retrieve {
     my ( $self, $args ) = @_;
 
-    my $stored = $self->storage->retrieve( { %{$args}, version => $VERSION } );
+    my $stored = $self->storage->retrieve($args);
 
     _compare_versions( $self,          $stored->{version} );
     _compare_versions( $self->storage, $stored->{storage_version} );

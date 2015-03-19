@@ -24,22 +24,17 @@ sub new {
 }
 
 sub store {
-    my ( $self, $args ) = @_;
+    my $self = shift;
 
-    my $method = $args->{method};
-    my $key    = $args->{key};
+    my $args = $self->SUPER::new(@_);
 
-    my $dump = dump {
-        input           => $args->{input},
-        output          => $args->{output},
-        version         => $args->{version},
-        storage_version => $VERSION,
-    };
+    my $method = delete $args->{method};
+    my $key    = delete $args->{key};
 
     # for now only store on disk
     my $storage = path( $self->dir, $method );
     $storage->mkpath;
-    $storage->child( _filename($key) )->spew_utf8($dump);
+    $storage->child( _filename($key) )->spew_utf8( dump $args );
 
     return $self;
 }
@@ -47,9 +42,8 @@ sub store {
 sub retrieve {
     my ( $self, $args ) = @_;
 
-    my $method  = $args->{method};
-    my $key     = $args->{key};
-    my $version = $args->{version};
+    my $method = $args->{method};
+    my $key    = $args->{key};
 
     my $storage = path( $self->dir, $method );
     my $stored = $storage->child( _filename($key) )->slurp_utf8();
