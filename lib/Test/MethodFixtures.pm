@@ -15,13 +15,14 @@ use base 'Class::Accessor::Fast';
 __PACKAGE__->mk_accessors(qw( mode storage _wrapped ));
 
 our ( $MODE, $STORAGE );
+my %VALID_MODES = ( playback => 1, record => 1, auto => 1 );
 
 sub import {
     my ( $class, %args ) = @_;
 
     if ( $MODE = $args{'-mode'} ) {
         croak "Invalid mode '$MODE'"
-            unless $MODE eq 'playback' or $MODE eq 'record';
+            unless $VALID_MODES{$MODE};
     }
 
     $STORAGE = $args{'-storage'};
@@ -93,6 +94,12 @@ sub retrieve {
     return $stored->{output};
 }
 
+sub is_stored {
+    my ( $self, $args ) = @_;
+
+    return $self->storage->is_stored($args);
+}
+
 sub _compare_versions {
     my ( $class, $version ) = @_;
 
@@ -128,12 +135,15 @@ sub mock {
 
         $self->_wrapped->{"$name-pre"} = wrap $name => pre => sub {
 
-            if ( $self_ref->mode eq 'playback' ) {
+            my @args = @_;    # original arguments method received
+            pop @args;        # currently undef, will be the return value
 
-                my @args = @_;    # original arguments method received
-                pop @args;        # currently undef, will be the return value
+            my $key = $get_key->( { wantarray => wantarray() }, @args );
 
-                my $key = $get_key->( { wantarray => wantarray() }, @args );
+            if (   $self_ref->mode eq 'playback'
+                or $self_ref->mode eq 'auto'
+                && $self_ref->is_stored( { method => $name, key => $key } ) )
+            {
 
                 # add cached value into extra arg,
                 # so original sub will not be called
@@ -148,12 +158,15 @@ sub mock {
 
         $self->_wrapped->{"$name-post"} = wrap $name => post => sub {
 
-            if ( $self_ref->mode eq 'record' ) {
+            my (@args) = @_;    # origin arguments method received, plus result
+            my $result = pop @args;
 
-                my (@args) = @_; # origin arguments method received, plus result
-                my $result = pop @args;
+            my $key = $get_key->( { wantarray => wantarray() }, @args );
 
-                my $key = $get_key->( { wantarray => wantarray() }, @args );
+            if (   $self_ref->mode eq 'record'
+                or $self_ref->mode eq 'auto'
+                && !$self_ref->is_stored( { method => $name, key => $key } ) )
+            {
 
                 $self_ref->store(
                     {   method => $name,

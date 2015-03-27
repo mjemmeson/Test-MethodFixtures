@@ -51,6 +51,18 @@ sub retrieve {
     return $data;
 }
 
+sub is_stored {
+    my ( $self, $args ) = @_;
+
+    my $method = $args->{method};
+    my $key    = $args->{key};
+
+    my $storage = path( $self->dir, $method );
+    my $path = $storage->child( $self->filename($key) );
+
+    return $path->is_file ? 1 : 0;
+}
+
 sub filename {
     my $self = shift;
     return md5_hex dump shift;
@@ -75,8 +87,8 @@ Test::MethodFixtures::Storage::File
 
 =head1 DESCRIPTION
 
-Subclass of L<Test::MethodFixtures::Storage>. Implements C<store> and
-C<retrieve> methods.
+Subclass of L<Test::MethodFixtures::Storage>. Implements C<store>, C<retrieve>
+and C<is_stored> methods.
 
 =cut
 
