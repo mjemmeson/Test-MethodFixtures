@@ -17,6 +17,14 @@ BEGIN {
 
         return reverse @args;
     }
+
+    sub arrayref {
+        $expensive_call++;
+
+        my @args = @{ shift() };
+
+        return [ reverse @args ];
+    }
 }
 
 ok my $mocker = Test::MethodFixtures->new(), "got mocker";
@@ -35,30 +43,40 @@ subtest array => sub {
             },
         );
 
-        ok $mocker->mode('record'), "set mode to record";
-
         ok $mocker->mock('Mocked::Complex::array'), "mocked array sub";
 
-        my $count = 0;
-        foreach my $test (@tests) {
-
-            is_deeply [ Mocked::Complex::array( @{ $test->{in} } ) ],
-                $test->{out}, "call mocked function";
-
-            is $Mocked::Complex::expensive_call, ++$count, "called once";
-        }
-
-        ok $mocker->mode('playback'), "set mode to playback";
-
-        foreach my $test (@tests) {
-
-            is_deeply [ Mocked::Complex::array( @{ $test->{in} } ) ],
-                $test->{out}, "call mocked function";
-
-            is $Mocked::Complex::expensive_call, $count,
-                "still only called $count times";
-        }
+        run_tests('Mocked::Complex::array', @tests);
 };
+
+sub run_tests {
+    my ( $method, @tests ) = @_;
+
+    no strict 'refs';
+
+    note $method;
+
+    ok $mocker->mode('record'), "set mode to record";
+
+    my $count = $Mocked::Complex::expensive_call = 0;
+    foreach my $test (@tests) {
+
+        is_deeply [ $method->( @{ $test->{in} } ) ],
+            $test->{out}, "call mocked function";
+
+        is $Mocked::Complex::expensive_call, ++$count, "called once";
+    }
+
+    ok $mocker->mode('playback'), "set mode to playback";
+
+    foreach my $test (@tests) {
+
+        is_deeply [ $method->( @{ $test->{in} } ) ],
+            $test->{out}, "call mocked function";
+
+        is $Mocked::Complex::expensive_call, $count,
+            "still only called $count times";
+    }
+}
 
 done_testing();
 

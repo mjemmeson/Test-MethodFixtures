@@ -32,7 +32,7 @@ sub store {
     # for now only store on disk
     my $storage = path( $self->dir, $method );
     $storage->mkpath;
-    $storage->child( _filename($key) )->spew_utf8( dump $args );
+    $storage->child( $self->filename($key) )->spew_utf8( dump $args );
 
     return $self;
 }
@@ -44,14 +44,15 @@ sub retrieve {
     my $key    = $args->{key};
 
     my $storage = path( $self->dir, $method );
-    my $stored = $storage->child( _filename($key) )->slurp_utf8();
+    my $stored = $storage->child( $self->filename($key) )->slurp_utf8();
 
     my $data = eval $stored;
 
     return $data;
 }
 
-sub _filename {
+sub filename {
+    my $self = shift;
     return md5_hex dump shift;
 }
 
