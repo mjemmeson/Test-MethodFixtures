@@ -147,12 +147,18 @@ sub mock {
 
                 # add cached value into extra arg,
                 # so original sub will not be called
-                $_[-1] = $self_ref->retrieve(
-                    {   method => $name,
-                        key    => $key,
-                        input  => \@args,
-                    }
-                );
+                eval {
+                    $_[-1] = $self_ref->retrieve(
+                        {   method => $name,
+                            key    => $key,
+                            input  => \@args,
+                        }
+                    );
+                };
+                if ($@) {
+                    croak "Unable to retrieve $name - in "
+                        . $self_ref->mode . " mode";
+                }
             }
         };
 
