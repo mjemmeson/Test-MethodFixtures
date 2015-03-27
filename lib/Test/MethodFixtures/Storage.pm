@@ -9,14 +9,7 @@ use Carp;
 
 use base 'Class::Accessor::Fast';
 
-sub store {
-    my ( $self, $args ) = @_;
-
-    $args->{ ref $self } = $VERSION;
-
-    return $args;
-}
-
+sub store    { croak "store() not implemented" }
 sub retrieve { croak "retrieve() not implemented" }
 
 __END__

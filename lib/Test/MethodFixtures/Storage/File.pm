@@ -24,9 +24,7 @@ sub new {
 }
 
 sub store {
-    my $self = shift;
-
-    my $args = $self->SUPER::new(@_);
+    my ( $self, $args ) = @_;
 
     my $method = delete $args->{method};
     my $key    = delete $args->{key};

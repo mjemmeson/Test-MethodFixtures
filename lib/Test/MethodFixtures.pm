@@ -12,9 +12,9 @@ use version;
 
 use base 'Class::Accessor::Fast';
 
-__PACKAGE__->mk_accessors(qw( mode storage versions _wrapped ));
+__PACKAGE__->mk_accessors(qw( mode storage _wrapped ));
 
-our ( $MODE, $STORAGE, $VERSIONS );
+our ( $MODE, $STORAGE );
 
 sub import {
     my ( $class, %args ) = @_;
@@ -25,8 +25,6 @@ sub import {
     }
 
     $STORAGE = $args{'-storage'};
-
-    $VERSIONS = $args{'-versions'};
 }
 
 sub new {
@@ -34,12 +32,10 @@ sub new {
 
     my $mode     = $args->{mode}     || $MODE;
     my $storage  = $args->{storage}  || $STORAGE;
-    my $versions = $args->{versions} || $VERSIONS;
 
     return $class->SUPER::new(
         {   mode => $mode || 'playback',
             storage  => _get_storage($storage),
-            versions => $versions,
             _wrapped => {},
         }
     );
@@ -100,12 +96,9 @@ sub retrieve {
 sub _compare_versions {
     my ( $class, $version ) = @_;
 
-    my $v_this = version->parse( $class->VERSION );
-    my $v_that = version->parse($version);
-
     carp "Data saved with a more recent version ($version) of "
         . ref($class) . "!"
-        if $v_that > $v_this;
+        if version->parse( $class->VERSION ) < version->parse($version);
 }
 
 # pass in optional coderef to return list of values to use
@@ -188,13 +181,6 @@ __END__
 
 Test::MethodFixtures
 
-=head1 DESCRIPTION
-
-Record and playback method arguments, for easy mocking in tests.
-
-Replace an expensive or external call, so that don't need to repeatedly make
-that call during testing.
-
 =head1 SYNOPSIS
 
     use Test::MethodFixtures
@@ -236,6 +222,13 @@ that call during testing.
             );
         }
     );
+
+=head1 DESCRIPTION
+
+Record and playback method arguments, for convenient mocking in tests.
+
+Using this module you can replace an expensive, external or non-repeatable call,
+so that there is no need to make that call during subsequent testing.
 
 =head1 METHODS
 
