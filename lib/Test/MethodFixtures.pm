@@ -3,7 +3,7 @@ use warnings;
 
 package Test::MethodFixtures;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Carp;
 use Hook::LexWrap qw( wrap );
