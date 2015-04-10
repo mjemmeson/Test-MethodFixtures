@@ -12,11 +12,15 @@ use version;
 
 use base 'Class::Accessor::Fast';
 
-__PACKAGE__->mk_ro_accessors(qw( mode ));
-__PACKAGE__->mk_accessors(qw( storage _wrapped ));
+__PACKAGE__->mk_accessors(qw( mode storage _wrapped ));
 
 our ( $MODE, $STORAGE );
-my %VALID_MODES = ( playback => 1, record => 1, auto => 1, passthrough => 1 );
+my %VALID_MODES = (
+    playback    => 1,    # default mode
+    record      => 1,
+    auto        => 1,
+    passthrough => 1,
+);
 
 sub import {
     my ( $class, %args ) = @_;
@@ -136,59 +140,59 @@ sub mock {
 
         $self->_wrapped->{"$name-pre"} = wrap $name => pre => sub {
 
+            return
+                if $self_ref->mode eq 'record'
+                or $self_ref->mode eq 'passthrough';
+
             my @args = @_;    # original arguments method received
             pop @args;        # currently undef, will be the return value
 
             my $key = $get_key->( { wantarray => wantarray() }, @args );
 
-            if ($self_ref->mode eq 'playback'
-                or (   $self_ref->mode eq 'auto'
-                    && $self_ref->is_stored( { method => $name, key => $key } )
-                )
-                )
-            {
+            return
+                if $self_ref->mode eq 'auto'
+                && !$self_ref->is_stored( { method => $name, key => $key } );
 
-                # add cached value into extra arg,
-                # so original sub will not be called
-                eval {
-                    $_[-1] = $self_ref->retrieve(
-                        {   method => $name,
-                            key    => $key,
-                            input  => \@args,
-                        }
-                    );
-                };
-                if ($@) {
-                    croak "Unable to retrieve $name - in "
-                        . $self_ref->mode . " mode";
-                }
+            # add cached value into extra arg,
+            # so original sub will not be called
+            eval {
+                $_[-1] = $self_ref->retrieve(
+                    {   method => $name,
+                        key    => $key,
+                        input  => \@args,
+                    }
+                );
+            };
+            if ($@) {
+                croak "Unable to retrieve $name - in "
+                    . $self_ref->mode . " mode";
             }
         };
 
         $self->_wrapped->{"$name-post"} = wrap $name => post => sub {
+
+            return
+                if $self_ref->mode eq 'playback'
+                or $self_ref->mode eq 'passthrough';
 
             my (@args) = @_;    # origin arguments method received, plus result
             my $result = pop @args;
 
             my $key = $get_key->( { wantarray => wantarray() }, @args );
 
-            if ($self_ref->mode eq 'record'
-                or ( $self_ref->mode eq 'auto'
-                    && !$self_ref->is_stored( { method => $name, key => $key } )
-                )
-                )
-            {
+            return
+                if $self_ref->mode eq 'auto'
+                && $self_ref->is_stored( { method => $name, key => $key } );
 
-                $self_ref->store(
-                    {   method => $name,
-                        key    => $key,
-                        input  => \@args,
-                        defined wantarray()
-                        ? ( output => $result )
-                        : ( no_output => 1 ),
-                    }
-                );
-            }
+            $self_ref->store(
+                {   method => $name,
+                    key    => $key,
+                    input  => \@args,
+                    defined wantarray()
+                    ? ( output => $result )
+                    : ( no_output => 1 ),
+                }
+            );
         };
     }
 
@@ -279,10 +283,9 @@ B<N.B.> This module should be considered ALPHA quality and liable to change.
 
 Despite not providing any test methods, it is under the C<Test::> namespace to
 aid discovery and because it makes little sense outside of a test environment.
+The name is inspired by database 'fixtures'.
 
-Feedback welcome.
-
-Happy Testing!
+Feedback welcome!
 
 =head1 METHODS
 
@@ -361,9 +364,8 @@ the mocked code.
 
 They have to be kept up-to-date with the code that they are mocking, yet are
 not usually stored with that code or maintained by the same developers. Besides
-the extra development costs, this means that the divergence may only be noticed
-when the system under test uses the real code (hopefully before it reaches
-production).
+the extra development costs, divergence may only be noticed later and so the
+tests are of less value.
 
 =back
 
