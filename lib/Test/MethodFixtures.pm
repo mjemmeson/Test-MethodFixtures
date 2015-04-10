@@ -36,11 +36,11 @@ sub import {
 sub new {
     my ( $class, $args ) = @_;
 
-    my $mode     = $args->{mode}     || $MODE;
-    my $storage  = $args->{storage}  || $STORAGE;
+    my $mode    = $args->{mode}    || $MODE    || 'playback';
+    my $storage = $args->{storage} || $STORAGE || undef;
 
     return $class->SUPER::new(
-        {   mode => $mode || 'playback',
+        {   mode => $ENV{TEST_MF_MODE} || $mode,
             storage  => _get_storage($storage),
             _wrapped => {},
         }
@@ -211,8 +211,27 @@ Test::MethodFixtures - Convenient mocking of externalities by recording and repl
 
 =head1 SYNOPSIS
 
-    # optionally set mode with environment variables
-    $ENV{TEST_MF_MODE} = 'record';
+Setting up mocked methods in a test script:
+
+    # my-test-script.t
+    ...
+    use Test::MethodFixtures;
+
+    Test::MethodFixtures->new->mock("Their::Package::Method");
+
+    use My::Package;    # has dependency on Their::Package::Method
+
+    ... # unit tests for My::Package here
+
+Example workflow using the mocked methods:
+
+    $> TEST_MF_MODE=record prove -l my-test-script.t
+    $> git add t/.methodfixtures
+    $> git commit -m 'methodfixtures for my-test-script.t'
+
+    $> prove -l my-test-script.t   # uses saved data
+
+More configuration options:
 
     use Test::MethodFixtures
         # optionally specify global arguments
@@ -236,16 +255,16 @@ Test::MethodFixtures - Convenient mocking of externalities by recording and repl
     );
 
     # simple functions and class methods - can store all arguments
-    $mocker->mock("My::Package::Method");
+    $mocker->mock("Their::Package::Method");
 
     # object methods - we need to turn $_[0] ($self) into an
     # unique identifier for object, not memory reference
-    $mocker->mock( "My::Object::Method",
+    $mocker->mock( "Their::Object::Method",
         sub { $_[0]->firstname . '-' . $_[0]->lastname } );
 
     # do the same for other arguments
     $mocker->mock(
-        "My::Object::Method",
+        "Their::Object::Method",
         sub {
             (   $_[0],                                       # use as-is
                 $_[1]->firstname . '-' . $_[1]->lastname,    # object in $_[1]
@@ -256,7 +275,7 @@ Test::MethodFixtures - Convenient mocking of externalities by recording and repl
 
     # skipping arguments that shouldn't be saved - set to undef
     $mocker->mock(
-        "My::Package::Method",
+        "Their::Package::Method",
         sub {
             (   $_[0],    # keep
                 undef,    # discard
@@ -265,6 +284,7 @@ Test::MethodFixtures - Convenient mocking of externalities by recording and repl
             );
         }
     );
+
 
 =head1 DESCRIPTION
 
@@ -307,8 +327,8 @@ Class method. Constructor
 
 =head2 mock
 
-    $mocker->mock("My::Package::method");
-    $mocker->mock( "My::Package::method", sub { ( $_[0], ... ) } );
+    $mocker->mock("Their::Package::method");
+    $mocker->mock( "Their::Package::method", sub { ( $_[0], ... ) } );
 
 In C<record> mode stores the return values of the named method against the
 arguments passed through to generate those return values.
