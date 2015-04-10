@@ -198,7 +198,7 @@ __END__
 
 =head1 NAME
 
-Test::MethodFixtures
+Test::MethodFixtures - Convenient mocking of externalities by recording and replaying method calls.
 
 =head1 SYNOPSIS
 
