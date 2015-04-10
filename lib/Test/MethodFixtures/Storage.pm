@@ -21,7 +21,7 @@ __END__
 
 =head1 NAME
 
-Test::MethodFixtures::Storage
+Test::MethodFixtures::Storage - Base class for storage of data for methods mocked with Test::MethodFixtures 
 
 =head1 SYNOPSIS
 

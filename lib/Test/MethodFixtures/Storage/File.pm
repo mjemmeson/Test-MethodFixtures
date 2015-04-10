@@ -76,7 +76,7 @@ __END__
 
 =head1 NAME
 
-Test::MethodFixtures::Storage::File
+Test::MethodFixtures::Storage::File - Simple file storage for method mocking with Test::MethodFixtures
 
 =head1 SYNOPSIS
 
