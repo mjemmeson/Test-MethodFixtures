@@ -18,3 +18,7 @@ on test => sub {
     recommends "Capture::Tiny" => "0";
 };
 
+on develop => sub {
+    recommends "Dist::Milla"                       => "0";
+    recommends "Dist::Zilla::Plugin::MetaProvides" => "0";
+};
