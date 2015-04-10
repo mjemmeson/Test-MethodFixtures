@@ -2,6 +2,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+ [Feature]
+ - Adding support for documented TEST_MF_MODE environment variable
+
 0.01  2015-04-10 17:05:06 BST
 
  - Initial release
