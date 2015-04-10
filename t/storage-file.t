@@ -3,7 +3,11 @@ use warnings;
 
 use Test::More;
 
-use Test::MethodFixtures::Storage::File;
+my $pkg = 'Test::MethodFixtures::Storage::File';
+
+eval "require $pkg";
+
+plan skip_all => "Can't use $pkg" if $@;
 
 BEGIN {
 
@@ -15,7 +19,6 @@ BEGIN {
     }
 }
 
-my $pkg = 'Test::MethodFixtures::Storage::File';
 
 my @tests = (
         {   name => 'simple scalar',

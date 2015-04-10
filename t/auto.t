@@ -5,6 +5,12 @@ use Test::More;
 use Test::Exception;
 use Test::MethodFixtures;
 
+my $pkg = 'Test::MethodFixtures::Storage::File';
+
+eval "require $pkg";
+
+plan skip_all => "Can't use $pkg" if $@;
+
 use File::Temp qw( tempdir );
 
 BEGIN {

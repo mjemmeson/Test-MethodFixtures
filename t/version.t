@@ -2,8 +2,13 @@ use strict;
 use warnings;
 
 use Test::More;
-use Test::Requires 'Capture::Tiny';
 use Test::MethodFixtures;
+
+my $pkg = 'Test::MethodFixtures::Storage::File';
+
+eval "require $pkg";
+
+plan skip_all => "Can't use $pkg" if $@;
 
 BEGIN {
 
@@ -41,17 +46,24 @@ is Mocked::NoVersion::foo(), 5, "call mocked function";
 
 ok $mocker->mode('playback'), "set mode to playback";
 
-$stderr = Capture::Tiny::capture_stderr { $result = Mocked::NoVersion::foo() };
-is $result, 5,  "function result ok";
-is $stderr, '', "stderr ok";
+eval { require Capture::Tiny };
+SKIP: {
+        skip "Can't use Capture::Tiny", 4;
 
-$Test::MethodFixtures::VERSION = '0.00002';
+        $stderr
+            = Capture::Tiny::capture_stderr { $result = Mocked::NoVersion::foo() };
+        is $result, 5,  "function result ok";
+        is $stderr, '', "stderr ok";
 
-$stderr = Capture::Tiny::capture_stderr { $result = Mocked::NoVersion::foo() };
-is $result, 5, "function result ok";
-like $stderr,
-    qr{Data saved with a more recent version \([\d.]+\) of Test::MethodFixtures!},
-    "stderr ok";
+        $Test::MethodFixtures::VERSION = '0.00002';
+
+        $stderr
+            = Capture::Tiny::capture_stderr { $result = Mocked::NoVersion::foo() };
+        is $result, 5, "function result ok";
+        like $stderr,
+            qr{Data saved with a more recent version \([\d.]+\) of Test::MethodFixtures!},
+            "stderr ok";
+}
 
 done_testing();
 

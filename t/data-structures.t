@@ -4,6 +4,12 @@ use warnings;
 use Test::More;
 use Test::MethodFixtures;
 
+my $pkg = 'Test::MethodFixtures::Storage::File';
+
+eval "require $pkg";
+
+plan skip_all => "Can't use $pkg" if $@;
+
 BEGIN {
 
     package Mocked::Complex;
