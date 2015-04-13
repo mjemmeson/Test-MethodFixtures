@@ -350,10 +350,6 @@ object to a unique identifier.
 Internal method. Wraps C<store()> on storage object, and adds package versions
 for this class and the storage class for comparison on retrieval.
 
-=head2 is_stored
-
-Internal method. Wraps C<is_stored()> on storage object.
-
 =head2 retrieve
 
 Internal method. Wraps C<retrieve()> on storage object, and checks package

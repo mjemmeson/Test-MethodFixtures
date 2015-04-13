@@ -147,10 +147,6 @@ object to a unique identifier.
 Internal method. Wraps `store()` on storage object, and adds package versions
 for this class and the storage class for comparison on retrieval.
 
-## is\_stored
-
-Internal method. Wraps `is_stored()` on storage object.
-
 ## retrieve
 
 Internal method. Wraps `retrieve()` on storage object, and checks package
