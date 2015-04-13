@@ -142,6 +142,20 @@ Optionally `mock()` takes a second argument of a coderef to manipulate `@_`,
 for example to prevent storage of a non-consistent value or to stringify an
 object to a unique identifier.
 
+## store
+
+Internal method. Wraps `store()` on storage object, and adds package versions
+for this class and the storage class for comparison on retrieval.
+
+## is\_stored
+
+Internal method. Wraps `is_stored()` on storage object.
+
+## retrieve
+
+Internal method. Wraps `retrieve()` on storage object, and checks package
+versions are compatible.
+
 # BEHAVIOUR
 
 - Warns if the module versions used to create the saved data is more recent
