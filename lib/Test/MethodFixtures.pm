@@ -96,12 +96,6 @@ sub retrieve {
     return $stored->{output};
 }
 
-sub is_stored {
-    my ( $self, $args ) = @_;
-
-    return $self->storage->is_stored($args);
-}
-
 sub _compare_versions {
     my ( $class, $version ) = @_;
 
@@ -135,51 +129,51 @@ sub mock {
 
         my $get_key = $self->get_key_sub($value);
 
-        $self->_wrapped->{"$name-pre"} = wrap $name => pre => sub {
+        my $pre = sub {
 
-            return
-                if $self_ref->mode eq 'record'
-                or $self_ref->mode eq 'passthrough';
+            my $mode = $self_ref->mode;
+
+            return if $mode eq 'record' or $mode eq 'passthrough';
 
             my @args = @_;    # original arguments method received
             pop @args;        # currently undef, will be the return value
 
             my $key = $get_key->( { wantarray => wantarray() }, @args );
 
-            return
-                if $self_ref->mode eq 'auto'
-                && !$self_ref->is_stored( { method => $name, key => $key } );
-
             # add cached value into extra arg,
             # so original sub will not be called
             eval {
-                $_[-1] = $self_ref->retrieve(
+                my $retrieved = $self_ref->retrieve(
                     {   method => $name,
                         key    => $key,
                         input  => \@args,
                     }
                 );
+
+                if ( defined $retrieved ) {
+                    $_[-1] = $retrieved;
+                } else {
+                    die "Nothing stored for $name"
+                        unless $mode eq 'auto';
+                }
             };
             if ($@) {
-                croak "Unable to retrieve $name - in "
-                    . $self_ref->mode . " mode: $@";
+                croak "Unable to retrieve $name - in $mode mode: $@";
             }
         };
 
-        $self->_wrapped->{"$name-post"} = wrap $name => post => sub {
+        my $post = sub {
+            my $mode = $self_ref->mode;
 
-            return
-                if $self_ref->mode eq 'playback'
-                or $self_ref->mode eq 'passthrough';
+            return if $mode eq 'passthrough';
+
+            croak "Problem retrieving data - reached store() in $mode mode"
+                if $mode eq 'playback';
 
             my (@args) = @_;    # origin arguments method received, plus result
             my $result = pop @args;
 
             my $key = $get_key->( { wantarray => wantarray() }, @args );
-
-            return
-                if $self_ref->mode eq 'auto'
-                && $self_ref->is_stored( { method => $name, key => $key } );
 
             $self_ref->store(
                 {   method => $name,
@@ -191,6 +185,10 @@ sub mock {
                 }
             );
         };
+
+        $self->_wrapped->{$name} = wrap $name,    #
+            pre  => $pre,                         #
+            post => $post;
     }
 
     return $self;
