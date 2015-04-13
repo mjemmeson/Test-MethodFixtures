@@ -8,9 +8,9 @@ use Storable qw( freeze );
 
 use base 'Test::MethodFixtures::Storage';
 
-my %STORAGE;
+local $Storable::canonical = 1;
 
-use Data::Dump qw/ dd /;
+my %STORAGE;
 
 __PACKAGE__->mk_accessors( qw/ foo / );
 
@@ -26,15 +26,11 @@ sub store {
 sub retrieve {
     my ( $self, $args ) = @_;
 
-    die unless $self->is_stored($args);
+    my $key = _key( $args->{key} );
 
-    return $STORAGE{ $args->{method} }->{ _key( $args->{key} ) };
-}
+    return unless exists $STORAGE{ $args->{method} }->{$key};
 
-sub is_stored {
-    my ( $self, $args ) = @_;
-
-    return exists $STORAGE{ $args->{method} }->{ _key( $args->{key} ) } ? 1 : 0;
+    return $STORAGE{ $args->{method} }->{$key};
 }
 
 sub _key {

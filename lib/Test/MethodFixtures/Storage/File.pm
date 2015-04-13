@@ -2,6 +2,7 @@ package Test::MethodFixtures::Storage::File;
 
 use strict;
 use warnings;
+use Carp;
 
 our $VERSION = '0.03';
 
@@ -19,6 +20,9 @@ sub new {
 
     $args ||= {};
     $args->{dir} ||= 't/.methodfixtures';
+
+    croak "Unable to access " . $args->{dir}
+        unless -d $args->{dir} && -w $args->{dir};
 
     return $class->SUPER::new($args);
 }
@@ -43,24 +47,12 @@ sub retrieve {
     my $method = $args->{method};
     my $key    = $args->{key};
 
-    my $storage = path( $self->dir, $method );
-    my $stored = $storage->child( $self->filename($key) )->slurp_utf8();
+    my $storage = path( $self->dir, $method )->child( $self->filename($key) );
+    return unless $storage->is_file;
 
-    my $data = eval $stored;
+    my $data = eval $storage->slurp_utf8();;
 
     return $data;
-}
-
-sub is_stored {
-    my ( $self, $args ) = @_;
-
-    my $method = $args->{method};
-    my $key    = $args->{key};
-
-    my $storage = path( $self->dir, $method );
-    my $path = $storage->child( $self->filename($key) );
-
-    return $path->is_file ? 1 : 0;
 }
 
 sub filename {
@@ -87,8 +79,13 @@ Test::MethodFixtures::Storage::File - Simple file storage for method mocking wit
 
 =head1 DESCRIPTION
 
-Subclass of L<Test::MethodFixtures::Storage>. Implements C<store>, C<retrieve>
-and C<is_stored> methods.
+Subclass of L<Test::MethodFixtures::Storage>. Implements C<store> and C<retrieve>
+
+=head1 METHODS
+
+=head2 store
+
+=head2 retrieve
 
 =cut
 
