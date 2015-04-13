@@ -4,6 +4,7 @@ use warnings;
 use lib 't/lib';
 
 use Test::More;
+use Test::Exception;
 
 my $pkg = 'Test::MethodFixtures::Storage::File';
 
@@ -20,7 +21,6 @@ BEGIN {
         bless { foo => 10 }, $class;
     }
 }
-
 
 my @tests = (
         {   name => 'simple scalar',
@@ -55,18 +55,64 @@ my @tests = (
 );
 
 # check that filenames are consistent and independent of memory references
+subtest key => sub {
+        my %seen;
+        foreach my $test (@tests) {
+            note $test->{name};
+            ok my $filename = $pkg->filename( $test->{key}->() ),
+                "got filename";
+            is $filename, $pkg->filename( $test->{key}->() ),
+                "filename consistent";
 
-my @filenames;
-foreach my $test (@tests) {
-        note $test->{name};
-        ok my $filename = $pkg->filename( $test->{key}->() ), "got filename";
-        is $filename, $pkg->filename( $test->{key}->() ), "filename consistent";
+            ok !$seen{$filename}++, "filename unique";
+        }
+};
 
-        my @matched = grep { $filename eq $_ } @filenames;
-        ok !@matched, "filename unique";
+ok my $storage = $pkg->new(), "new $pkg";
 
-        push @matched, $filename;
-}
+subtest store => sub {
+
+        foreach my $test (@tests) {
+
+            ok $storage->store(
+                {   method => 'Foo::Bar::thing',
+                    key    => $test->{key},
+                    input  => 100,
+                    output => 200
+                }
+                ),
+                "store()";
+
+        }
+};
+
+subtest retrieve => sub {
+        foreach my $test (@tests) {
+
+            ok my $stored = $storage->retrieve(
+                {   method => 'Foo::Bar::thing',
+                    key    => $test->{key},
+                }
+                ),
+                "retrieve()";
+
+            is_deeply $stored, { input => 100, output => 200 }, "data ok";
+        }
+
+        dies_ok {
+            $storage->retrieve(
+                { method => 'Foo::Bar::thing', key => [ 1, 2 ] } )
+        }, "dies with key not found";
+
+        dies_ok {
+            $storage->retrieve(
+                {   method => 'Foo::Bar::another::thing',
+                    key    => $tests[0]->{key}
+                }
+                )
+        }, "dies with valid key but wrong class";
+
+};
 
 done_testing();
 
