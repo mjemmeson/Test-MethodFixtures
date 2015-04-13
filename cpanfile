@@ -12,6 +12,8 @@ recommends "Digest::MD5" => "0";
 recommends "Path::Tiny"  => "0";
 
 on test => sub {
+    requires "Digest::MD5"     => "0";
+    requires "Storable"        => "0";
     requires "Test::More"      => "0";
     requires "Test::Exception" => "0";
     requires "File::Temp"      => "0";

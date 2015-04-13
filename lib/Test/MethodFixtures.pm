@@ -14,6 +14,7 @@ use base 'Class::Accessor::Fast';
 
 __PACKAGE__->mk_accessors(qw( mode storage _wrapped ));
 
+our $DEFAULT_STORAGE = 'Test::MethodFixtures::Storage::File';
 our ( $MODE, $STORAGE );
 my %VALID_MODES = (
     playback    => 1,    # default mode
@@ -34,45 +35,37 @@ sub import {
 }
 
 sub new {
-    my ( $class, $args ) = @_;
+    my $class = shift;
+    my %args  = %{ shift() };
 
-    my $mode    = $args->{mode}    || $MODE    || 'playback';
-    my $storage = $args->{storage} || $STORAGE || undef;
+    my $mode    = delete $args{mode}    || $MODE    || 'playback';
+    my $storage = delete $args{storage} || $STORAGE || '+' . $DEFAULT_STORAGE;
+
+    $storage = { $storage => {} } unless ref $storage;
+
+    if ( !blessed $storage ) {
+
+        my ( $storage_class, $storage_args ) = %{$storage};
+
+        $storage_class = __PACKAGE__ . "::Storage::" . $storage_class
+            unless $storage_class =~ s/^\+//;
+
+        eval "require $storage_class";
+        croak "Unable to load '$storage_class': $@" if $@;
+
+        $storage = $storage_class->new(
+            {   %{ $storage_args || {} },
+                %args,    # pass in any remaining arguments
+            }
+        );
+    }
 
     return $class->SUPER::new(
         {   mode => $ENV{TEST_MF_MODE} || $mode,
-            storage  => _get_storage($storage),
+            storage  => $storage,
             _wrapped => {},
         }
     );
-}
-
-sub _get_storage {
-    my $storage = shift;
-
-    return $storage if ref $storage && blessed $storage;
-
-    my ( $storage_class, $storage_args );
-
-    if ( ref $storage ) {
-
-        ( $storage_class, $storage_args ) = %{$storage};
-
-        unless ( $storage_class =~ s/^\+// ) {
-            $storage_class = "Test::MethodFixtures::Storage::$storage_class";
-        }
-
-    } else {
-
-        $storage_class = 'Test::MethodFixtures::Storage::File';
-        $storage_args = { dir => $storage };
-
-    }
-
-    eval "require $storage_class" ;
-    croak "Unable to load '$storage_class': $@" if $@;
-
-    return $storage_class->new($storage_args);
 }
 
 sub store {
@@ -93,8 +86,10 @@ sub retrieve {
 
     my $stored = $self->storage->retrieve($args);
 
-    _compare_versions( $self,          $stored->{version} );
-    _compare_versions( $self->storage, $stored->{storage_version} );
+    _compare_versions( $self, $stored->{version} )
+        if exists $stored->{version};
+    _compare_versions( $self->storage, $stored->{storage_version} )
+        if exists $stored->{storage_version};
 
     return $stored->{output};
 }
@@ -165,7 +160,7 @@ sub mock {
             };
             if ($@) {
                 croak "Unable to retrieve $name - in "
-                    . $self_ref->mode . " mode";
+                    . $self_ref->mode . " mode: $@";
             }
         };
 
@@ -245,13 +240,17 @@ More configuration options:
         # optionally specify alternative storage
 
         # override default storage directory
-        storage => '/path/to/storage',
+        dir => '/path/to/storage',
 
         # use alternative Test::MethodFixtures::Storage object
         storage => $storage_obj,
 
         # load alternative Test::MethodFixtures::Storage:: class
-        storage => { 'Alt::Storage::Class' => \%options },
+        storage => '+Alt::Storage::Class', 
+        # or:
+        storage => { '+Alt::Storage::Class' => \%options },
+
+        # without '+' prefix, 'Test::MethodFixtures::' is prepended to name
     );
 
     # simple functions and class methods - can store all arguments

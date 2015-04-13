@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+use lib 't/lib';
+
 use Test::More;
 
 my $pkg = 'Test::MethodFixtures::Storage::File';
