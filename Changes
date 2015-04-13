@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.03  2015-04-13 11:21:25 BST
+
  [API Change]
  - 'storage' argument no longer can be used to set directory for default File storage
 

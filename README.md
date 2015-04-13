@@ -38,13 +38,17 @@ More configuration options:
         # optionally specify alternative storage
 
         # override default storage directory
-        storage => '/path/to/storage',
+        dir => '/path/to/storage',
 
         # use alternative Test::MethodFixtures::Storage object
         storage => $storage_obj,
 
         # load alternative Test::MethodFixtures::Storage:: class
-        storage => { 'Alt::Storage::Class' => \%options },
+        storage => '+Alt::Storage::Class', 
+        # or:
+        storage => { '+Alt::Storage::Class' => \%options },
+
+        # without '+' prefix, 'Test::MethodFixtures::' is prepended to name
     );
 
     # simple functions and class methods - can store all arguments
