@@ -7,7 +7,7 @@ our $VERSION = '0.02';
 
 use Carp;
 use Data::Dump qw( dump );
-use Digest::MD5 qw( md5_hex );;
+use Digest::MD5 qw( md5_hex );
 use Path::Tiny;
 
 use base 'Test::MethodFixtures::Storage';

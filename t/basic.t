@@ -1,14 +1,10 @@
 use strict;
 use warnings;
 
+use lib 't/lib';
+
 use Test::More;
 use Test::MethodFixtures;
-
-my $pkg = 'Test::MethodFixtures::Storage::File';
-
-eval "require $pkg";
-
-plan skip_all => "Can't use $pkg" if $@;
 
 BEGIN {
 
@@ -45,7 +41,9 @@ BEGIN {
     }
 }
 
-ok my $mocker = Test::MethodFixtures->new(), "got mocker";
+ok my $mocker
+    = Test::MethodFixtures->new( { storage => '+TestMethodFixtures::Dummy' } ),
+    "got mocker";
 
 subtest Simple => sub {
 

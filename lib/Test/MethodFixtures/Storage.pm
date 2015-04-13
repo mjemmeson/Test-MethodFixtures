@@ -35,6 +35,7 @@ Subclasses should implement the following interface:
         }
     );
 
+    # should die if nothing stored for that key
     my $stored = $storage->retrieve(
         {   method => 'My::Module::mocked_method',
             key    => ...,

@@ -1,17 +1,11 @@
 use strict;
 use warnings;
 
+use lib 't/lib';
+
 use Test::More;
 use Test::Exception;
 use Test::MethodFixtures;
-
-my $pkg = 'Test::MethodFixtures::Storage::File';
-
-eval "require $pkg";
-
-plan skip_all => "Can't use $pkg" if $@;
-
-use File::Temp qw( tempdir );
 
 BEGIN {
 
@@ -25,14 +19,14 @@ BEGIN {
     }
 }
 
+ok my $mocker
+    = Test::MethodFixtures->new(
+        { storage => '+TestMethodFixtures::Dummy', mode => 'playback' } ),
+    "got mocker";
+
 subtest auto => sub {
 
-        my $dir = tempdir( "test-methodfixtures-XXXXX", CLEANUP => 1 );
-
-        ok my $mocker
-            = Test::MethodFixtures->new(
-            { storage => $dir, mode => 'playback' } ),
-            "got mocker";
+        note $mocker->mode;
 
         ok $mocker->mock('Mocked::foo'), "mocked sub";
 
@@ -40,11 +34,15 @@ subtest auto => sub {
 
         ok $mocker->mode('auto'), "set mode to auto";
 
+        note $mocker->mode;
+
         is Mocked::foo( 3, 3 ), 9,  "call mocked function";
         is Mocked::foo( 4, 3 ), 12, "call mocked function";
         is Mocked::foo( 0, 3 ), 0,  "call mocked function";
 
         is $Mocked::expensive_call, 3, "called 3 times";
+
+        note $mocker->mode;
 
         is Mocked::foo( 0, 3 ), 0,  "call mocked function";
         is Mocked::foo( 4, 3 ), 12, "call mocked function";
