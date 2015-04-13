@@ -24,7 +24,7 @@ subtest args => sub {
 
 subtest import => sub {
 
-        Test::MethodFixtures->import( '-mode' => 'auto' ), "set from import";
+        Test::MethodFixtures->import( '-mode' => 'auto' );
         ok my $mocker = Test::MethodFixtures->new( \%mocker_args ),
             "got mocker";
         is $mocker->mode, 'auto', "set mode from import";
