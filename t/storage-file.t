@@ -3,6 +3,7 @@ use warnings;
 
 use lib 't/lib';
 
+use File::Temp qw( tempdir );
 use Test::More;
 use Test::Exception;
 
@@ -68,7 +69,9 @@ subtest key => sub {
         }
 };
 
-ok my $storage = $pkg->new(), "new $pkg";
+my $dir = tempdir( CLEANUP => 1 );
+
+ok my $storage = $pkg->new( { dir => $dir } ), "new $pkg";
 
 subtest store => sub {
 
