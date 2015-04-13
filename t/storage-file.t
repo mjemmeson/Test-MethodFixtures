@@ -99,19 +99,21 @@ subtest retrieve => sub {
             is_deeply $stored, { input => 100, output => 200 }, "data ok";
         }
 
-        dies_ok {
-            $storage->retrieve(
-                { method => 'Foo::Bar::thing', key => [ 1, 2 ] } )
-        }, "dies with key not found";
+        ok !$storage->retrieve(
+            { method => 'Foo::Bar::thing', key => [ 1, 2 ] } ),
+            "empty return with key not found";
 
-        dies_ok {
-            $storage->retrieve(
-                {   method => 'Foo::Bar::another::thing',
-                    key    => $tests[0]->{key}
-                }
-                )
-        }, "dies with valid key but wrong class";
+        ok !$storage->retrieve(
+            {   method => 'Foo::Bar::another::thing',
+                key    => $tests[0]->{key}
+            }
+            ),
+            "empty return with valid key but wrong class";
+};
 
+subtest invalid_dir => sub {
+        dies_ok { $pkg->new( { dir => 'x-invalid' } ) }
+        "dir must be valid on construction";
 };
 
 done_testing();

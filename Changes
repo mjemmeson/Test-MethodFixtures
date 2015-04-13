@@ -2,6 +2,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+ [Internal & API change]
+ - refactor to remove is_stored() method. retrieve() now makes empty return if not found (and dies later). 
+
 0.03  2015-04-13 11:21:25 BST
 
  [API Change]
