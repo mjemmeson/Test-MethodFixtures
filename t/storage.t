@@ -28,7 +28,7 @@ subtest args => sub {
         "got mocker with storage arg";
     isa_ok $mocker->storage, 'TestMethodFixtures::Alt', "set storage class";
 
-    ok my $mocker = Test::MethodFixtures->new(
+    ok $mocker = Test::MethodFixtures->new(
         {   %mocker_args,
             storage => { '+TestMethodFixtures::Alt' => { foo => 'bar' } },
         }
