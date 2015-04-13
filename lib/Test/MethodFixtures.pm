@@ -14,7 +14,7 @@ use base 'Class::Accessor::Fast';
 
 __PACKAGE__->mk_accessors(qw( mode storage _wrapped ));
 
-our $DEFAULT_STORAGE = 'Test::MethodFixtures::Storage::File';
+our $DEFAULT_STORAGE = 'Storage::File';
 our ( $MODE, $STORAGE );
 my %VALID_MODES = (
     playback    => 1,    # default mode
@@ -26,11 +26,7 @@ my %VALID_MODES = (
 sub import {
     my ( $class, %args ) = @_;
 
-    if ( $MODE = $args{'-mode'} ) {
-        croak "Invalid mode '$MODE'"
-            unless $VALID_MODES{$MODE};
-    }
-
+    $MODE    = $args{'-mode'};
     $STORAGE = $args{'-storage'};
 }
 
@@ -39,8 +35,14 @@ sub new {
     my %args  = %{ shift() };
 
     my $mode    = delete $args{mode}    || $MODE    || 'playback';
-    my $storage = delete $args{storage} || $STORAGE || '+' . $DEFAULT_STORAGE;
+    my $storage = delete $args{storage} || $STORAGE || $DEFAULT_STORAGE;
 
+    # testing mode
+    $mode = $ENV{TEST_MF_MODE} || $mode;
+
+    croak "Invalid mode '$MODE'" unless $VALID_MODES{$mode};
+
+    # storage mechanism
     $storage = { $storage => {} } unless ref $storage;
 
     if ( !blessed $storage ) {
@@ -48,7 +50,7 @@ sub new {
         my ( $storage_class, $storage_args ) = %{$storage};
 
         $storage_class = __PACKAGE__ . "::Storage::" . $storage_class
-            unless $storage_class =~ s/^\+//;
+            unless $storage_class =~ s/^\++//;
 
         eval "require $storage_class";
         croak "Unable to load '$storage_class': $@" if $@;
@@ -61,7 +63,7 @@ sub new {
     }
 
     return $class->SUPER::new(
-        {   mode => $ENV{TEST_MF_MODE} || $mode,
+        {   mode     => $mode,
             storage  => $storage,
             _wrapped => {},
         }

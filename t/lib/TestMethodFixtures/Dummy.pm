@@ -12,6 +12,8 @@ my %STORAGE;
 
 use Data::Dump qw/ dd /;
 
+__PACKAGE__->mk_accessors( qw/ foo / );
+
 sub store {
     my ( $self, $args ) = @_;
 
