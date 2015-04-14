@@ -106,8 +106,8 @@ sub _compare_versions {
 
 # pass in optional coderef to return list of values to use
 # (for example to stringify objects)
-sub get_key_sub {
-    my ( $self, $value ) = @_;
+sub _get_key_sub {
+    my $value = shift;
 
     return sub {
         my ( $config, @args ) = @_;
@@ -127,7 +127,7 @@ sub mock {
 
     while ( my ( $name, $value ) = splice @_, 0, 2 ) {
 
-        my $get_key = $self->get_key_sub($value);
+        my $get_key = _get_key_sub($value);
 
         my $pre = sub {
 
@@ -237,7 +237,7 @@ More configuration options:
     my $mocker = Test::MethodFixtures->new(
         mode => 'record',    # set locally for this object
 
-        # optionally specify alternative storage
+        # optionally specify alternative storage:
 
         # override default storage directory
         dir => '/path/to/storage',
@@ -246,7 +246,7 @@ More configuration options:
         storage => $storage_obj,
 
         # load alternative Test::MethodFixtures::Storage:: class
-        storage => '+Alt::Storage::Class', 
+        storage => '+Alt::Storage::Class',
         # or:
         storage => { '+Alt::Storage::Class' => \%options },
 
@@ -418,7 +418,7 @@ L<LWP::UserAgent::Mockable>
 
 =item *
 
-L<Memoize>
+L<Test::Mimic>
 
 =back
 

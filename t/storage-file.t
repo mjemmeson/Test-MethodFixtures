@@ -60,9 +60,9 @@ subtest key => sub {
         my %seen;
         foreach my $test (@tests) {
             note $test->{name};
-            ok my $filename = $pkg->filename( $test->{key}->() ),
+            ok my $filename = $pkg->_filename( $test->{key}->() ),
                 "got filename";
-            is $filename, $pkg->filename( $test->{key}->() ),
+            is $filename, $pkg->_filename( $test->{key}->() ),
                 "filename consistent";
 
             ok !$seen{$filename}++, "filename unique";

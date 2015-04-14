@@ -36,7 +36,7 @@ sub store {
     # for now only store on disk
     my $storage = path( $self->dir, $method );
     $storage->mkpath;
-    $storage->child( $self->filename($key) )->spew_utf8( dump $args );
+    $storage->child( $self->_filename($key) )->spew_utf8( dump $args );
 
     return $self;
 }
@@ -47,7 +47,7 @@ sub retrieve {
     my $method = $args->{method};
     my $key    = $args->{key};
 
-    my $storage = path( $self->dir, $method )->child( $self->filename($key) );
+    my $storage = path( $self->dir, $method )->child( $self->_filename($key) );
     return unless $storage->is_file;
 
     my $data = eval $storage->slurp_utf8();;
@@ -55,7 +55,7 @@ sub retrieve {
     return $data;
 }
 
-sub filename {
+sub _filename {
     my $self = shift;
     return md5_hex dump shift;
 }
@@ -83,9 +83,19 @@ Subclass of L<Test::MethodFixtures::Storage>. Implements C<store> and C<retrieve
 
 =head1 METHODS
 
+=head2 new
+
+    my $storage = Test::MethodFixtures::Storage::File->new( \%args );
+
+Class method. Constructor.
+
 =head2 store
 
+Object method. Stores to file.
+
 =head2 retrieve
+
+Object method. Retrieves from file. Empty return if not found (i.e. nothing stored).
 
 =cut
 

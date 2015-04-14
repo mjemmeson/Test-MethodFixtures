@@ -35,7 +35,7 @@ More configuration options:
     my $mocker = Test::MethodFixtures->new(
         mode => 'record',    # set locally for this object
 
-        # optionally specify alternative storage
+        # optionally specify alternative storage:
 
         # override default storage directory
         dir => '/path/to/storage',
@@ -44,7 +44,7 @@ More configuration options:
         storage => $storage_obj,
 
         # load alternative Test::MethodFixtures::Storage:: class
-        storage => '+Alt::Storage::Class', 
+        storage => '+Alt::Storage::Class',
         # or:
         storage => { '+Alt::Storage::Class' => \%options },
 
@@ -184,7 +184,7 @@ tests are of less value.
 # SEE ALSO
 
 - [LWP::UserAgent::Mockable](https://metacpan.org/pod/LWP::UserAgent::Mockable)
-- [Memoize](https://metacpan.org/pod/Memoize)
+- [Test::Mimic](https://metacpan.org/pod/Test::Mimic)
 
 # SUPPORT
 
