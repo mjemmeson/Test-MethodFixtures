@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.06  2015-12-07 18:32:23 GMT
+
  [Bugfix]
  - void context works as expected
  - version mismatch warnings work as expected
