@@ -4,6 +4,7 @@ Revision history for {{$dist->name}}
 
  [Bugfix]
  - void context works as expected
+ - version mismatch warnings work as expected
 
 0.05  2015-12-07 17:09:28 GMT
 
