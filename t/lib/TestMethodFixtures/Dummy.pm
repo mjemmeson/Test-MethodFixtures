@@ -17,8 +17,9 @@ __PACKAGE__->mk_accessors( qw/ foo / );
 sub store {
     my ( $self, $args ) = @_;
 
-    $STORAGE{ $args->{method} }->{ _key( $args->{key}) }
-        = { input => $args->{input}, output => $args->{output} };
+    my $key = _key( $args->{key} );
+    $STORAGE{ $args->{method} }->{$key}
+        = { %{$args}, input => $args->{input}, output => $args->{output} };
 
     return $self;
 }
