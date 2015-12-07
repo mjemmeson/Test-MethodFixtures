@@ -4,6 +4,7 @@ use warnings;
 use lib 't/lib';
 
 use Test::More;
+use Test::Requires qw/ Test::Output /;
 use Test::MethodFixtures;
 
 BEGIN {
@@ -18,6 +19,7 @@ BEGIN {
         return $arg + 5;
     }
 
+    # NOT YET IMPLEMENTED VERSION CHECKING OF MOCKED CLASSES
     package Mocked::Version;
 
     our $VERSION = "2";
@@ -30,11 +32,15 @@ BEGIN {
     }
 }
 
-my ( $result, $stderr );
+my $result;
 
 ok my $mocker
     = Test::MethodFixtures->new( { storage => '+TestMethodFixtures::Dummy' } ),
     "got mocker";
+
+# after loading
+$Test::MethodFixtures::VERSION = '2.2';
+$TestMethodFixtures::Dummy::VERSION = '2.2.2';
 
 ok $mocker->mock('Mocked::NoVersion::foo'), "mocked simple sub";
 
@@ -44,24 +50,35 @@ is Mocked::NoVersion::foo(), 5, "call mocked function";
 
 ok $mocker->mode('playback'), "set mode to playback";
 
-eval { require Capture::Tiny };
-SKIP: {
-        skip "Can't use Capture::Tiny", 4;
+Test::Output::stderr_is { $result = Mocked::NoVersion::foo() } '', 'no STDERR';
 
-        $stderr
-            = Capture::Tiny::capture_stderr { $result = Mocked::NoVersion::foo() };
-        is $result, 5,  "function result ok";
-        is $stderr, '', "stderr ok";
+is $result, 5, "function result ok";
 
-        $Test::MethodFixtures::VERSION = '0.00002';
+note "pretend using older version";
+$Test::MethodFixtures::VERSION = '1.1';
 
-        $stderr
-            = Capture::Tiny::capture_stderr { $result = Mocked::NoVersion::foo() };
-        is $result, 5, "function result ok";
-        like $stderr,
-            qr{Data saved with a more recent version \([\d.]+\) of Test::MethodFixtures!},
-            "stderr ok";
-}
+Test::Output::stderr_like { $result = Mocked::NoVersion::foo() }
+qr{Data saved with a more recent version \([\d.]+\) of Test::MethodFixtures!},
+    'STDERR from Test::MethodFixtures version mismatch';
+
+Test::Output::stderr_unlike { $result = Mocked::NoVersion::foo() }
+qr{Data saved with a more recent version \([\d.]+\) of TestMethodFixtures::Dummy!},
+    'No STDERR from storage class version mismatch';
+
+is $result, 5, "function result ok";
+
+note "pretend using older version of storage class as well";
+$TestMethodFixtures::Dummy::VERSION = '2.2.1';
+
+Test::Output::stderr_like { $result = Mocked::NoVersion::foo() }
+qr{Data saved with a more recent version \([\d.]+\) of Test::MethodFixtures!},
+    'STDERR from Test::MethodFixtures version mismatch';
+
+Test::Output::stderr_like { $result = Mocked::NoVersion::foo() }
+qr{Data saved with a more recent version \([\d.]+\) of TestMethodFixtures::Dummy!},
+    'STDERR from storage class version mismatch';
+
+is $result, 5, "function result ok";
 
 done_testing();
 

@@ -78,7 +78,7 @@ sub store {
     $args{ ref $self } = $self->VERSION;
     $args{ ref $self->storage } = $self->storage->VERSION;
 
-    $self->storage->store( { %args, version => $VERSION } );
+    $self->storage->store( \%args );
 
     return $self;
 }
@@ -88,10 +88,14 @@ sub retrieve {
 
     my $stored = $self->storage->retrieve($args);
 
-    _compare_versions( $self, $stored->{version} )
-        if exists $stored->{version};
-    _compare_versions( $self->storage, $stored->{storage_version} )
-        if exists $stored->{storage_version};
+    my $self_class    = ref $self;
+    my $storage_class = ref $self->storage;
+
+    _compare_versions( $self_class, $stored->{$self_class} )
+        if exists $stored->{$self_class};
+
+    _compare_versions( $storage_class, $stored->{$storage_class} )
+        if exists $stored->{$storage_class};
 
     unless ( defined $stored->{output} || $stored->{no_output} ) {
         die "Nothing stored for " . $args->{method};
@@ -103,8 +107,7 @@ sub retrieve {
 sub _compare_versions {
     my ( $class, $version ) = @_;
 
-    carp "Data saved with a more recent version ($version) of "
-        . ref($class) . "!"
+    carp "Data saved with a more recent version ($version) of $class!"
         if version->parse( $class->VERSION ) < version->parse($version);
 }
 

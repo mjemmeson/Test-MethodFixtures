@@ -18,6 +18,7 @@ sub store {
     my ( $self, $args ) = @_;
 
     my $key = _key( $args->{key} );
+
     $STORAGE{ $args->{method} }->{$key}
         = { %{$args}, input => $args->{input}, output => $args->{output} };
 
