@@ -9,21 +9,6 @@ use TestMethodFixtures::Dummy;
 
 my $class = 'Test::MethodFixtures';
 
-# sub new {
-#     my $class = shift;
-#     my %args  = %{ shift() || {} };
-
-#     my $mode    = delete $args{mode}    || $MODE    || 'playback';
-#     my $storage = delete $args{storage} || $STORAGE || $DEFAULT_STORAGE;
-
-#     # testing mode
-#     $mode = $ENV{TEST_MF_MODE} || $mode;
-
-#     croak "Invalid mode '$MODE'" unless $VALID_MODES{$mode};
-
-#     # storage mechanism
-#     $storage = { $storage => {} } unless ref $storage;
-
 subtest with_no_args => sub {
     ok my $obj = $class->new(), "new with no args";
     is $obj->mode, 'playback', 'default mode is playback';

@@ -18,7 +18,7 @@ on test => sub {
     requires "Test::More"      => "0";
     requires "Test::Exception" => "0";
     requires "File::Temp"      => "0";
-    recommends "Capture::Tiny" => "0";
+    recommends "Test::Output" => "0";
 };
 
 on develop => sub {
