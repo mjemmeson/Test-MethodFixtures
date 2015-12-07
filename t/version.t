@@ -4,7 +4,6 @@ use warnings;
 use lib 't/lib';
 
 use Test::More;
-use Test::Requires qw/ Test::Output /;
 use Test::MethodFixtures;
 
 BEGIN {
@@ -31,6 +30,12 @@ BEGIN {
         return $arg + 5;
     }
 }
+
+my $pkg = 'Test::Output';
+
+eval "require $pkg";
+
+plan skip_all => "Can't use $pkg" if $@;
 
 my $result;
 

@@ -7,6 +7,7 @@ requires "strict";
 requires "version";
 requires "warnings";
 
+# for Test::MethodFixtures::Storage::File:
 recommends "Data::Dump";
 recommends "Digest::MD5";
 recommends "Path::Tiny";
@@ -18,7 +19,6 @@ on test => sub {
     requires "Storable";
     requires "Test::Exception";
     requires "Test::More";
-    requires "Test::Requires";
 };
 
 on develop => sub {
