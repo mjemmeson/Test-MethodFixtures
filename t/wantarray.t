@@ -64,5 +64,49 @@ subtest list_context => sub {
 
 };
 
+subtest scalar_context => sub {
+
+        ok $mocker->mode('record'), "set mode to record";
+
+        ok my $scalar = Mocked::Wantarray::foo(), "call mocked function";
+
+        is_deeply $scalar, 'foo', "call in scalar context";
+
+        is_deeply \%Mocked::Wantarray::expensive_call,
+            { list_context => 1, scalar_context => 1, void_context => 0 },
+            "scalar_context called once";
+
+        ok $mocker->mode('playback'), "set mode to playback";
+
+        ok $scalar = Mocked::Wantarray::foo(), "call in scalar context";
+
+        is_deeply $scalar, 'foo', "call in scalar context";
+
+        is_deeply \%Mocked::Wantarray::expensive_call,
+            { list_context => 1, scalar_context => 1, void_context => 0 },
+            "scalar_context called once";
+
+};
+
+subtest void_context => sub {
+
+        ok $mocker->mode('record'), "set mode to record";
+
+        Mocked::Wantarray::foo();
+
+        is_deeply \%Mocked::Wantarray::expensive_call,
+            { list_context => 1, scalar_context => 1, void_context => 1 },
+            "void_context called once";
+
+        ok $mocker->mode('playback'), "set mode to playback";
+
+        Mocked::Wantarray::foo();
+
+        is_deeply \%Mocked::Wantarray::expensive_call,
+            { list_context => 1, scalar_context => 1, void_context => 1 },
+            "void_context called once";
+
+};
+
 done_testing();
 
