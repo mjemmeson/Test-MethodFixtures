@@ -157,8 +157,9 @@ sub mock {
             if ($@) {
                 croak "Unable to retrieve $name - in $mode mode: $@"
                     unless $mode eq 'auto';
+            } else {
+                $_[-1] = $retrieved;
             }
-            $_[-1] = $retrieved;
         };
 
         my $post = sub {
