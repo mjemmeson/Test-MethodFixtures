@@ -40,15 +40,18 @@ More configuration options:
         # override default storage directory
         dir => '/path/to/storage',
 
+        # use Test::MethodFixtures::Storage::File class (default)
+        storage => 'File',
+
         # use alternative Test::MethodFixtures::Storage object
         storage => $storage_obj,
 
-        # load alternative Test::MethodFixtures::Storage:: class
+        # load alternative Test::MethodFixtures::Storage class
         storage => '+Alt::Storage::Class',
         # or:
         storage => { '+Alt::Storage::Class' => \%options },
 
-        # without '+' prefix, 'Test::MethodFixtures::' is prepended to name
+        # without '+' prefix, 'Test::MethodFixtures::Storage' is prepended to name
     );
 
     # simple functions and class methods - can store all arguments
@@ -108,8 +111,8 @@ Feedback welcome!
 ## new
 
     my $mocker = Test::MethodFixtures->new(
-        {   mode    => 'record',            # override global / ENV
-            storage => '/path/to/storage',  # override default storage directory
+        {   mode => 'record',            # override global / ENV
+            dir  => '/path/to/storage',  # override default storage directory
 
             # or use alternative Test::MethodFixtures::Storage object
             storage => $storage_obj,
