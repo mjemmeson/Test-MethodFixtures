@@ -8,6 +8,8 @@ use Test::MethodFixtures;
 use TestMethodFixtures::Dummy;
 
 my $class = 'Test::MethodFixtures';
+my $new_dir = 't/.methodfixtures/tmp';
+END { rmdir $new_dir if -d $new_dir }
 
 subtest with_no_args => sub {
     ok my $obj = $class->new(), "new with no args";
@@ -19,7 +21,6 @@ subtest with_no_args => sub {
 
 subtest with_dir => sub {
 
-    my $new_dir = 't/.methodfixtures/tmp';
     mkdir $new_dir;
 
     ok my $obj = $class->new( { dir => $new_dir } ),
@@ -28,8 +29,6 @@ subtest with_dir => sub {
     ok my $storage = $obj->storage, "got storage attribtue";
     isa_ok $storage, 'Test::MethodFixtures::Storage::File';
     is $storage->dir, $new_dir, 'overridden default directory ok';
-
-    END { rmdir $new_dir if -d $new_dir }
 };
 
 subtest with_new_class => sub {
