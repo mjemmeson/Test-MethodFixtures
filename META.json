@@ -59,15 +59,13 @@
          }
       },
       "test" : {
-         "recommends" : {
-            "Test::Output" : "0"
-         },
          "requires" : {
             "Digest::MD5" : "0",
             "File::Temp" : "0",
             "Storable" : "0",
             "Test::Exception" : "0",
             "Test::More" : "0",
+            "Test::Requires" : "0",
             "perl" : "5.006"
          }
       }
