@@ -7,48 +7,60 @@ use Test::More;
 use Test::MethodFixtures;
 use TestMethodFixtures::Dummy;
 
+my $pkg = 'Test::MethodFixtures::Storage::File';
+
+eval "require $pkg";
+
+my $skip_storage_file = $@ ? 1 : 0;
+
 my $class = 'Test::MethodFixtures';
 my $new_dir = 't/.methodfixtures/tmp';
 END { rmdir $new_dir if -d $new_dir }
 
 subtest with_no_args => sub {
-    ok my $obj = $class->new(), "new with no args";
-    is $obj->mode, 'playback', 'default mode is playback';
-    ok my $storage = $obj->storage, "got storage attribtue";
-    isa_ok $storage, 'Test::MethodFixtures::Storage::File';
-    is $storage->dir, 't/.methodfixtures', 'default directory ok';
+SKIP: {
+        skip "Skipping - can't use $pkg", 5;
+        ok my $obj = $class->new(), "new with no args";
+        is $obj->mode, 'playback', 'default mode is playback';
+        ok my $storage = $obj->storage, "got storage attribtue";
+        isa_ok $storage, 'Test::MethodFixtures::Storage::File';
+        is $storage->dir, 't/.methodfixtures', 'default directory ok';
+    }
 };
 
 subtest with_dir => sub {
+SKIP: {
+        skip "Skipping - can't use $pkg", 5;
 
-    mkdir $new_dir;
+        mkdir $new_dir;
 
-    ok my $obj = $class->new( { dir => $new_dir } ),
-        "override default directory";
-    is $obj->mode, 'playback', 'default mode is playback';
-    ok my $storage = $obj->storage, "got storage attribtue";
-    isa_ok $storage, 'Test::MethodFixtures::Storage::File';
-    is $storage->dir, $new_dir, 'overridden default directory ok';
+        ok my $obj = $class->new( { dir => $new_dir } ),
+            "override default directory";
+        is $obj->mode, 'playback', 'default mode is playback';
+        ok my $storage = $obj->storage, "got storage attribtue";
+        isa_ok $storage, 'Test::MethodFixtures::Storage::File';
+        is $storage->dir, $new_dir, 'overridden default directory ok';
+    }
 };
 
 subtest with_new_class => sub {
 
-        ok my $obj = $class->new( { storage => '+TestMethodFixtures::Dummy' } ),
-            "new with storage class";
-        is $obj->mode, 'playback', 'default mode is playback';
-        ok my $storage = $obj->storage, "got storage attribtue";
-        isa_ok $storage, 'TestMethodFixtures::Dummy';
+    ok my $obj = $class->new( { storage => '+TestMethodFixtures::Dummy' } ),
+        "new with storage class";
+    is $obj->mode, 'playback', 'default mode is playback';
+    ok my $storage = $obj->storage, "got storage attribtue";
+    isa_ok $storage, 'TestMethodFixtures::Dummy';
 
 };
 
 subtest with_new_object => sub {
-        ok my $obj
-            = Test::MethodFixtures->new(
-            { storage => TestMethodFixtures::Dummy->new() } ),
-            "new with storage object";
-        is $obj->mode, 'playback', 'default mode is playback';
-        ok my $storage = $obj->storage, "got storage attribtue";
-        isa_ok $storage, 'TestMethodFixtures::Dummy';
+    ok my $obj
+        = Test::MethodFixtures->new(
+        { storage => TestMethodFixtures::Dummy->new() } ),
+        "new with storage object";
+    is $obj->mode, 'playback', 'default mode is playback';
+    ok my $storage = $obj->storage, "got storage attribtue";
+    isa_ok $storage, 'TestMethodFixtures::Dummy';
 
 };
 
