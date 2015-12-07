@@ -55,33 +55,43 @@ is Mocked::NoVersion::foo(), 5, "call mocked function";
 
 ok $mocker->mode('playback'), "set mode to playback";
 
-Test::Output::stderr_is { $result = Mocked::NoVersion::foo() } '', 'no STDERR';
+sub tester { $result = Mocked::NoVersion::foo() }
+
+Test::Output::stderr_is( \&tester, '', 'no STDERR' );
 
 is $result, 5, "function result ok";
 
 note "pretend using older version";
 $Test::MethodFixtures::VERSION = '1.1';
 
-Test::Output::stderr_like { $result = Mocked::NoVersion::foo() }
-qr{Data saved with a more recent version \([\d.]+\) of Test::MethodFixtures!},
-    'STDERR from Test::MethodFixtures version mismatch';
+Test::Output::stderr_like(
+    \&tester,
+    qr{Data saved with a more recent version \([\d.]+\) of Test::MethodFixtures!},
+    'STDERR from Test::MethodFixtures version mismatch'
+);
 
-Test::Output::stderr_unlike { $result = Mocked::NoVersion::foo() }
-qr{Data saved with a more recent version \([\d.]+\) of TestMethodFixtures::Dummy!},
-    'No STDERR from storage class version mismatch';
+Test::Output::stderr_unlike(
+    \&tester,
+    qr{Data saved with a more recent version \([\d.]+\) of TestMethodFixtures::Dummy!},
+    'No STDERR from storage class version mismatch'
+);
 
 is $result, 5, "function result ok";
 
 note "pretend using older version of storage class as well";
 $TestMethodFixtures::Dummy::VERSION = '2.2.1';
 
-Test::Output::stderr_like { $result = Mocked::NoVersion::foo() }
-qr{Data saved with a more recent version \([\d.]+\) of Test::MethodFixtures!},
-    'STDERR from Test::MethodFixtures version mismatch';
+Test::Output::stderr_like(
+    \&tester,
+    qr{Data saved with a more recent version \([\d.]+\) of Test::MethodFixtures!},
+    'STDERR from Test::MethodFixtures version mismatch'
+);
 
-Test::Output::stderr_like { $result = Mocked::NoVersion::foo() }
-qr{Data saved with a more recent version \([\d.]+\) of TestMethodFixtures::Dummy!},
-    'STDERR from storage class version mismatch';
+Test::Output::stderr_like(
+    \&tester,
+    qr{Data saved with a more recent version \([\d.]+\) of TestMethodFixtures::Dummy!},
+    'STDERR from storage class version mismatch'
+);
 
 is $result, 5, "function result ok";
 
