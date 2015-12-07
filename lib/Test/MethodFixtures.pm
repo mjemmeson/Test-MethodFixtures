@@ -93,6 +93,10 @@ sub retrieve {
     _compare_versions( $self->storage, $stored->{storage_version} )
         if exists $stored->{storage_version};
 
+    unless ( defined $stored->{output} || $stored->{no_output} ) {
+        die "Nothing stored for " . $args->{method};
+    }
+
     return $stored->{output};
 }
 
@@ -142,24 +146,19 @@ sub mock {
 
             # add cached value into extra arg,
             # so original sub will not be called
-            eval {
-                my $retrieved = $self_ref->retrieve(
+            my $retrieved = eval {
+                $self_ref->retrieve(
                     {   method => $name,
                         key    => $key,
                         input  => \@args,
                     }
                 );
-
-                if ( defined $retrieved ) {
-                    $_[-1] = $retrieved;
-                } else {
-                    die "Nothing stored for $name"
-                        unless $mode eq 'auto';
-                }
             };
             if ($@) {
-                croak "Unable to retrieve $name - in $mode mode: $@";
+                croak "Unable to retrieve $name - in $mode mode: $@"
+                    unless $mode eq 'auto';
             }
+            $_[-1] = $retrieved;
         };
 
         my $post = sub {
