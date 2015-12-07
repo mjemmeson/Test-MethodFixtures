@@ -75,15 +75,15 @@
    "provides" : {
       "Test::MethodFixtures" : {
          "file" : "lib/Test/MethodFixtures.pm",
-         "version" : "0.04"
+         "version" : "0.05"
       },
       "Test::MethodFixtures::Storage" : {
          "file" : "lib/Test/MethodFixtures/Storage.pm",
-         "version" : "0.04"
+         "version" : "0.05"
       },
       "Test::MethodFixtures::Storage::File" : {
          "file" : "lib/Test/MethodFixtures/Storage/File.pm",
-         "version" : "0.04"
+         "version" : "0.05"
       }
    },
    "release_status" : "stable",
@@ -98,6 +98,6 @@
          "web" : "https://github.com/mjemmeson/Test-MethodFixtures"
       }
    },
-   "version" : "0.04"
+   "version" : "0.05"
 }
 
