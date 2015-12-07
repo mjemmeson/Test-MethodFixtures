@@ -15,11 +15,16 @@ use base 'Test::MethodFixtures::Storage';
 
 __PACKAGE__->mk_accessors(qw/ dir /);
 
+our $DEFAULT_DIR = 't/.methodfixtures';
+
 sub new {
     my ( $class, $args ) = @_;
 
     $args ||= {};
-    $args->{dir} ||= 't/.methodfixtures';
+    unless ($args->{dir}) {
+        mkdir $DEFAULT_DIR;
+        $args->{dir} = $DEFAULT_DIR;
+    }
 
     croak "Unable to access " . $args->{dir}
         unless -d $args->{dir} && -w $args->{dir};
@@ -88,6 +93,9 @@ Subclass of L<Test::MethodFixtures::Storage>. Implements C<store> and C<retrieve
     my $storage = Test::MethodFixtures::Storage::File->new( \%args );
 
 Class method. Constructor.
+
+Will die if the storage directory does not exist and cannot be written to. Will
+create the storage directory if the default (C<<t/.methodfixtures>>) is used.
 
 =head2 store
 

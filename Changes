@@ -2,6 +2,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+ [Bugfix]
+ - #1 Can't use an undefined value as a HASH reference - broken constructor arguments
+
 0.04  2015-04-13 16:45:58 BST
 
  [Internal & API change]

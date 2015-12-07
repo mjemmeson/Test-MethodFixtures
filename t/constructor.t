@@ -8,21 +8,8 @@ use Test::MethodFixtures;
 use TestMethodFixtures::Dummy;
 
 my $class = 'Test::MethodFixtures';
-
-# sub new {
-#     my $class = shift;
-#     my %args  = %{ shift() || {} };
-
-#     my $mode    = delete $args{mode}    || $MODE    || 'playback';
-#     my $storage = delete $args{storage} || $STORAGE || $DEFAULT_STORAGE;
-
-#     # testing mode
-#     $mode = $ENV{TEST_MF_MODE} || $mode;
-
-#     croak "Invalid mode '$MODE'" unless $VALID_MODES{$mode};
-
-#     # storage mechanism
-#     $storage = { $storage => {} } unless ref $storage;
+my $new_dir = 't/.methodfixtures/tmp';
+END { rmdir $new_dir if -d $new_dir }
 
 subtest with_no_args => sub {
     ok my $obj = $class->new(), "new with no args";
@@ -34,7 +21,6 @@ subtest with_no_args => sub {
 
 subtest with_dir => sub {
 
-    my $new_dir = 't/.methodfixtures/tmp';
     mkdir $new_dir;
 
     ok my $obj = $class->new( { dir => $new_dir } ),
@@ -43,8 +29,6 @@ subtest with_dir => sub {
     ok my $storage = $obj->storage, "got storage attribtue";
     isa_ok $storage, 'Test::MethodFixtures::Storage::File';
     is $storage->dir, $new_dir, 'overridden default directory ok';
-
-    END { rmdir $new_dir if -d $new_dir }
 };
 
 subtest with_new_class => sub {
