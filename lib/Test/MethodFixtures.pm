@@ -14,7 +14,7 @@ use base 'Class::Accessor::Fast';
 
 __PACKAGE__->mk_accessors(qw( mode storage _wrapped ));
 
-our $DEFAULT_STORAGE = 'Storage::File';
+our $DEFAULT_STORAGE = 'File';
 our ( $MODE, $STORAGE );
 my %VALID_MODES = (
     playback    => 1,    # default mode
@@ -32,7 +32,7 @@ sub import {
 
 sub new {
     my $class = shift;
-    my %args  = %{ shift() };
+    my %args  = %{ shift() || {} };
 
     my $mode    = delete $args{mode}    || $MODE    || 'playback';
     my $storage = delete $args{storage} || $STORAGE || $DEFAULT_STORAGE;
@@ -135,7 +135,7 @@ sub mock {
 
             return if $mode eq 'record' or $mode eq 'passthrough';
 
-            my @args = @_;    # original arguments method received
+            my @args = @_;    # original arguments that method received
             pop @args;        # currently undef, will be the return value
 
             my $key = $get_key->( { wantarray => wantarray() }, @args );
@@ -242,15 +242,18 @@ More configuration options:
         # override default storage directory
         dir => '/path/to/storage',
 
+        # use Test::MethodFixtures::Storage::File class (default)
+        storage => 'File',
+
         # use alternative Test::MethodFixtures::Storage object
         storage => $storage_obj,
 
-        # load alternative Test::MethodFixtures::Storage:: class
+        # load alternative Test::MethodFixtures::Storage class
         storage => '+Alt::Storage::Class',
         # or:
         storage => { '+Alt::Storage::Class' => \%options },
 
-        # without '+' prefix, 'Test::MethodFixtures::' is prepended to name
+        # without '+' prefix, 'Test::MethodFixtures::Storage' is prepended to name
     );
 
     # simple functions and class methods - can store all arguments
@@ -311,8 +314,8 @@ Feedback welcome!
 =head2 new
 
     my $mocker = Test::MethodFixtures->new(
-        {   mode    => 'record',            # override global / ENV
-            storage => '/path/to/storage',  # override default storage directory
+        {   mode => 'record',            # override global / ENV
+            dir  => '/path/to/storage',  # override default storage directory
 
             # or use alternative Test::MethodFixtures::Storage object
             storage => $storage_obj,
@@ -402,7 +405,7 @@ tests are of less value.
 
 =over
 
-=item * 
+=item *
 
 https://www.destroyallsoftware.com/blog/2014/test-isolation-is-about-avoiding-mocks
 
