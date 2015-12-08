@@ -6,6 +6,7 @@ use lib 't/lib';
 use Test::More;
 use Test::MethodFixtures;
 use TestMethodFixtures::Dummy;
+use Path::Tiny qw( path );
 
 my $pkg = 'Test::MethodFixtures::Storage::File';
 
@@ -14,8 +15,8 @@ eval "require $pkg";
 my $skip_storage_file = $@ ? 1 : 0;
 
 my $class = 'Test::MethodFixtures';
-my $new_dir = 't/.methodfixtures/tmp';
-END { rmdir $new_dir if -d $new_dir }
+my $new_dir = path('t/.methodfixtures/tmp');
+END { $new_dir->remove_tree if $new_dir->is_dir }
 
 subtest with_no_args => sub {
 SKIP: {
@@ -32,7 +33,7 @@ subtest with_dir => sub {
 SKIP: {
         skip "Skipping - can't use $pkg", 5;
 
-        mkdir $new_dir;
+        $new_dir->mkpath;
 
         ok my $obj = $class->new( { dir => $new_dir } ),
             "override default directory";

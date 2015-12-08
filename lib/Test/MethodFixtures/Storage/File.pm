@@ -9,7 +9,7 @@ our $VERSION = '0.06';
 use Carp;
 use Data::Dump qw( dump );
 use Digest::MD5 qw( md5_hex );
-use Path::Tiny;
+use Path::Tiny qw( path );
 
 use base 'Test::MethodFixtures::Storage';
 
@@ -21,8 +21,8 @@ sub new {
     my ( $class, $args ) = @_;
 
     $args ||= {};
-    unless ($args->{dir}) {
-        mkdir $DEFAULT_DIR;
+    unless ( $args->{dir} ) {
+        path($DEFAULT_DIR)->mkpath;
         $args->{dir} = $DEFAULT_DIR;
     }
 
