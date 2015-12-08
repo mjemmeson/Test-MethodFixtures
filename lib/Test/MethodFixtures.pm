@@ -300,8 +300,8 @@ non-repeatable call, so that there is no need to make that call again during
 subsequent testing.
 
 This module aims to be low-dependency to minimise disruption with legacy
-codebases.  By default tries to use L<Test::MethodFixtures::Storage::File> to
-record method data.  Other storage classes can be provided instead, to use
+codebases.  By default it tries to use L<Test::MethodFixtures::Storage::File>
+to record method data.  Other storage classes can be provided instead, to use
 modules available to your system.
 
 B<N.B.> This module should be considered ALPHA quality and liable to change.
@@ -311,6 +311,17 @@ aid discovery and because it makes little sense outside of a test environment.
 The name is inspired by database 'fixtures'.
 
 Feedback welcome!
+
+=head1 ATTRIBUTES
+
+=head2 mode
+
+Valid modes are C<record>, C<playback>, C<auto>, and C<passthrough>. See
+C<mock()>.
+
+=head2 storage
+
+A L<Test::MethodFixtures::Storage> object.
 
 =head1 METHODS
 
@@ -335,11 +346,15 @@ Class method. Constructor
     $mocker->mock("Their::Package::method");
     $mocker->mock( "Their::Package::method", sub { ( $_[0], ... ) } );
 
-In C<record> mode stores the return values of the named method against the
-arguments passed through to generate those return values.
+In C<record> mode C<mock()> stores the return values of the named method
+against the arguments passed through to generate those return values.
 
-In C<playback> mode retrieves stored return values of the named method for the
-arguments passed in.
+In C<playback> mode C<mock()> retrieves stored return values of the named
+method for the arguments passed in.
+
+In C<auto> mode C<mock()> either stores or retrieves values, depending on
+their presence in the saved data. This mode is useful for adding tests
+without the need to re-record the other calls.
 
 In C<passthrough> mode the arguments and return values are passed to and from
 the method as normal (i.e. turns off mocking).
