@@ -69,7 +69,7 @@ subtest key => sub {
         }
 };
 
-my $dir = tempdir( CLEANUP => 0 );
+my $dir = tempdir( CLEANUP => 1 );
 ok my $storage = $pkg->new( { dir => $dir } ), "new $pkg";
 
 subtest store => sub {
