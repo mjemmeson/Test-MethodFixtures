@@ -69,17 +69,16 @@ subtest key => sub {
         }
 };
 
-my $dir = tempdir( CLEANUP => 1 );
-
+my $dir = tempdir( CLEANUP => 0 );
 ok my $storage = $pkg->new( { dir => $dir } ), "new $pkg";
 
 subtest store => sub {
 
         foreach my $test (@tests) {
-
+            note $test->{name};
             ok $storage->store(
                 {   method => 'Foo::Bar::thing',
-                    key    => $test->{key},
+                    key    => $test->{key}->(),
                     input  => 100,
                     output => 200
                 }
@@ -94,7 +93,7 @@ subtest retrieve => sub {
 
             ok my $stored = $storage->retrieve(
                 {   method => 'Foo::Bar::thing',
-                    key    => $test->{key},
+                    key    => $test->{key}->(),
                 }
                 ),
                 "retrieve()";
@@ -103,7 +102,7 @@ subtest retrieve => sub {
         }
 
         ok !$storage->retrieve(
-            { method => 'Foo::Bar::thing', key => [ 1, 2 ] } ),
+            { method => 'Foo::Bar::thing', key => [ 'x', 'x' ] } ),
             "empty return with key not found";
 
         ok !$storage->retrieve(
