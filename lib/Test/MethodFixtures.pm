@@ -101,7 +101,7 @@ sub retrieve {
         die "Nothing stored for " . $args->{method};
     }
 
-    return $stored->{output};
+    return $stored;
 }
 
 sub _compare_versions {
@@ -134,64 +134,69 @@ sub mock {
 
     while ( my ( $name, $value ) = splice @_, 0, 2 ) {
 
+        my $original_fn = \&{$name};
+
         my $get_key = _get_key_sub($value);
 
         my $pre = sub {
 
             my $mode = $self_ref->mode;
 
-            return if $mode eq 'record' or $mode eq 'passthrough';
+            return if $mode eq 'passthrough';
 
             my @args = @_;    # original arguments that method received
             pop @args;        # currently undef, will be the return value
 
             my $key = $get_key->( { wantarray => wantarray() }, @args );
 
-            # add cached value into extra arg,
-            # so original sub will not be called
-            my $retrieved = eval {
-                $self_ref->retrieve(
+            if ( $mode eq 'playback' or $mode eq 'auto' ) {
+
+                my $retrieved = eval {
+                    $self_ref->retrieve(
+                        {   method => $name,
+                            key    => $key,
+                            input  => \@args,
+                        }
+                    );
+                };
+                if ($@) {
+                    croak "Unable to retrieve $name - in $mode mode: $@"
+                        unless $mode eq 'auto';
+                } else {
+                    # add cached value into extra arg,
+                    # so original sub will not be called
+                    $_[-1] = $retrieved->{output};
+                    return;
+                }
+            }
+
+            if ( $mode eq 'record' or $mode eq 'auto' ) {
+
+                my $result;
+                if (wantarray) {
+                    $result = [ $original_fn->(@args) ];
+                } elsif ( defined wantarray ) {
+                    $result = $original_fn->(@args);
+                } else {
+                    $original_fn->(@args);
+                }
+
+                $self_ref->store(
                     {   method => $name,
                         key    => $key,
                         input  => \@args,
+                        defined wantarray()
+                        ? ( output => $result )
+                        : ( no_output => 1 ),
                     }
                 );
-            };
-            if ($@) {
-                croak "Unable to retrieve $name - in $mode mode: $@"
-                    unless $mode eq 'auto';
-            } else {
-                $_[-1] = $retrieved;
+
+                $_[-1] = $result;
+                return;
             }
         };
 
-        my $post = sub {
-            my $mode = $self_ref->mode;
-
-            return if $mode eq 'passthrough';
-
-            croak "Problem retrieving data - reached store() in $mode mode"
-                if $mode eq 'playback';
-
-            my (@args) = @_;    # origin arguments method received, plus result
-            my $result = pop @args;
-
-            my $key = $get_key->( { wantarray => wantarray() }, @args );
-
-            $self_ref->store(
-                {   method => $name,
-                    key    => $key,
-                    input  => \@args,
-                    defined wantarray()
-                    ? ( output => $result )
-                    : ( no_output => 1 ),
-                }
-            );
-        };
-
-        $self->_wrapped->{$name} = wrap $name,    #
-            pre  => $pre,                         #
-            post => $post;
+        $self->_wrapped->{$name} = wrap $name, pre => $pre;
     }
 
     return $self;

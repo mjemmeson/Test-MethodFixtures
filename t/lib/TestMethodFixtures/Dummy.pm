@@ -19,8 +19,11 @@ sub store {
 
     my $key = _key( $args->{key} );
 
-    $STORAGE{ $args->{method} }->{$key}
-        = { %{$args}, input => $args->{input}, output => $args->{output} };
+    $STORAGE{ $args->{method} }->{$key} = {
+        %{$args},
+        input  => $args->{input},
+        output => $args->{output}
+    };
 
     return $self;
 }
