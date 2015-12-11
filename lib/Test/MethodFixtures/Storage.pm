@@ -31,6 +31,11 @@ Subclasses should implement the following interface:
             key    => ...,
             input  => ...,
             output => ...,
+
+            # optional:
+            'Test::MethodFixtures' => $version,
+            'My::Storage::Class' => $storage_version,
+
         }
     );
 
