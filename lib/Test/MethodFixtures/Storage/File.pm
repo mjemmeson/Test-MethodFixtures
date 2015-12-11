@@ -26,7 +26,9 @@ sub new {
         $args->{dir} = $DEFAULT_DIR;
     }
 
-    croak "Unable to access " . $args->{dir}
+    croak "Unable to access "
+        . $args->{dir}
+        . " (do you need to create the storage directory?)"
         unless -d $args->{dir} && -w $args->{dir};
 
     return $class->SUPER::new($args);
