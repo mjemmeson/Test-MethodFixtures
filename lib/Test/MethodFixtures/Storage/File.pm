@@ -40,8 +40,7 @@ sub store {
     my $method = delete $args->{method};
     my $key    = delete $args->{key};
 
-    # for now only store on disk
-    my $storage = path( $self->dir, $method );
+    my $storage = $self->_directory($method);
     $storage->mkpath;
     $storage->child( $self->_filename($key) )->spew_utf8( dump $args );
 
@@ -54,12 +53,19 @@ sub retrieve {
     my $method = $args->{method};
     my $key    = $args->{key};
 
-    my $storage = path( $self->dir, $method )->child( $self->_filename($key) );
+    my $storage = $self->_directory($method)->child( $self->_filename($key) );
     return unless $storage->is_file;
 
-    my $data = eval $storage->slurp_utf8();;
+    my $data = eval $storage->slurp_utf8();
 
     return $data;
+}
+
+# TODO test (and escape?) invalid characters
+sub _directory {
+    my ( $self, $method ) = @_;
+    $method =~ s/(::|')/-/g;
+    return path( $self->dir, $method );
 }
 
 sub _filename {
