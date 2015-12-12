@@ -4,7 +4,7 @@
       "Michael Jemmeson <mjemmeson@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.032, Dist::Milla version v1.0.15, CPAN::Meta::Converter version 2.150001",
+   "generated_by" : "Dist::Zilla version 5.042, Dist::Milla version v1.0.15, CPAN::Meta::Converter version 2.150001",
    "license" : [
       "perl_5"
    ],
@@ -15,25 +15,26 @@
    "name" : "Test-MethodFixtures",
    "no_index" : {
       "directory" : [
-         "t",
-         "xt",
+         "eg",
+         "examples",
          "inc",
          "share",
-         "eg",
-         "examples"
+         "t",
+         "xt"
       ]
    },
    "prereqs" : {
       "configure" : {
          "requires" : {
-            "Module::Build::Tiny" : "0.039",
+            "Module::Build::Tiny" : "0.034",
             "perl" : "5.006"
          }
       },
       "develop" : {
          "recommends" : {
             "Dist::Milla" : "0",
-            "Dist::Zilla::Plugin::MetaProvides" : "0"
+            "Dist::Zilla::Plugin::MetaProvides" : "0",
+            "Test::Pod" : "0"
          },
          "requires" : {
             "Dist::Milla" : "v1.0.15",
@@ -63,9 +64,9 @@
             "Digest::MD5" : "0",
             "File::Temp" : "0",
             "Storable" : "0",
+            "Test::Deep" : "0",
             "Test::Exception" : "0",
             "Test::More" : "0",
-            "Test::Requires" : "0",
             "perl" : "5.006"
          }
       }

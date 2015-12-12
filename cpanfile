@@ -24,4 +24,5 @@ on test => sub {
 on develop => sub {
     recommends "Dist::Milla";
     recommends "Dist::Zilla::Plugin::MetaProvides";
+    recommends "Test::Pod";
 };

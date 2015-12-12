@@ -85,6 +85,11 @@ More configuration options:
         }
     );
 
+# BREAKING CHANGE
+
+v0.07 - the default file storage now uses hyphens instead of colons as package
+name separators.
+
 # DESCRIPTION
 
 Record and playback method arguments, for convenient mocking in tests.
@@ -94,8 +99,8 @@ non-repeatable call, so that there is no need to make that call again during
 subsequent testing.
 
 This module aims to be low-dependency to minimise disruption with legacy
-codebases.  By default tries to use [Test::MethodFixtures::Storage::File](https://metacpan.org/pod/Test::MethodFixtures::Storage::File) to
-record method data.  Other storage classes can be provided instead, to use
+codebases.  By default it tries to use [Test::MethodFixtures::Storage::File](https://metacpan.org/pod/Test::MethodFixtures::Storage::File)
+to record method data.  Other storage classes can be provided instead, to use
 modules available to your system.
 
 **N.B.** This module should be considered ALPHA quality and liable to change.
@@ -105,6 +110,17 @@ aid discovery and because it makes little sense outside of a test environment.
 The name is inspired by database 'fixtures'.
 
 Feedback welcome!
+
+# ATTRIBUTES
+
+## mode
+
+Valid modes are `record`, `playback`, `auto`, and `passthrough`. See
+`mock()`.
+
+## storage
+
+A [Test::MethodFixtures::Storage](https://metacpan.org/pod/Test::MethodFixtures::Storage) object.
 
 # METHODS
 
@@ -129,11 +145,15 @@ Class method. Constructor
     $mocker->mock("Their::Package::method");
     $mocker->mock( "Their::Package::method", sub { ( $_[0], ... ) } );
 
-In `record` mode stores the return values of the named method against the
-arguments passed through to generate those return values.
+In `record` mode `mock()` stores the return values of the named method
+against the arguments passed through to generate those return values.
 
-In `playback` mode retrieves stored return values of the named method for the
-arguments passed in.
+In `playback` mode `mock()` retrieves stored return values of the named
+method for the arguments passed in.
+
+In `auto` mode `mock()` either stores or retrieves values, depending on
+their presence in the saved data. This mode is useful for adding tests
+without the need to re-record the other calls.
 
 In `passthrough` mode the arguments and return values are passed to and from
 the method as normal (i.e. turns off mocking).
@@ -208,7 +228,7 @@ public review and contribution under the terms of the license.
 
 # AUTHOR
 
-Michael Jemmeson <mjemmeson@cpan.org>
+Michael Jemmeson &lt;mjemmeson@cpan.org>
 
 # COPYRIGHT
 
