@@ -294,6 +294,11 @@ More configuration options:
         }
     );
 
+=head1 BREAKING CHANGE
+
+v0.07 - the default file storage now uses hyphens instead of colons as package
+name separators.
+
 
 =head1 DESCRIPTION
 
