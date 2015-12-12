@@ -101,7 +101,7 @@ sub retrieve {
         die "Nothing stored for " . $args->{method};
     }
 
-    return $stored->{output};
+    return $stored;
 }
 
 sub _compare_versions {
@@ -134,64 +134,68 @@ sub mock {
 
     while ( my ( $name, $value ) = splice @_, 0, 2 ) {
 
-        my $get_key = _get_key_sub($value);
+        my $original_fn = \&{$name};
 
-        my $pre = sub {
+        my $key_sub = _get_key_sub($value);
 
-            my $mode = $self_ref->mode;
+        $self->_wrapped->{$name} = wrap $name, pre => sub {
 
-            return if $mode eq 'record' or $mode eq 'passthrough';
-
-            my @args = @_;    # original arguments that method received
-            pop @args;        # currently undef, will be the return value
-
-            my $key = $get_key->( { wantarray => wantarray() }, @args );
-
-            # add cached value into extra arg,
-            # so original sub will not be called
-            my $retrieved = eval {
-                $self_ref->retrieve(
-                    {   method => $name,
-                        key    => $key,
-                        input  => \@args,
-                    }
-                );
-            };
-            if ($@) {
-                croak "Unable to retrieve $name - in $mode mode: $@"
-                    unless $mode eq 'auto';
-            } else {
-                $_[-1] = $retrieved;
-            }
-        };
-
-        my $post = sub {
             my $mode = $self_ref->mode;
 
             return if $mode eq 'passthrough';
 
-            croak "Problem retrieving data - reached store() in $mode mode"
-                if $mode eq 'playback';
+            my @args = @_;    # original arguments that method received
+            pop @args;        # currently undef, will be the return value
 
-            my (@args) = @_;    # origin arguments method received, plus result
-            my $result = pop @args;
+            my $key = $key_sub->( { wantarray => wantarray() }, @args );
 
-            my $key = $get_key->( { wantarray => wantarray() }, @args );
+            if ( $mode eq 'playback' or $mode eq 'auto' ) {
 
-            $self_ref->store(
-                {   method => $name,
-                    key    => $key,
-                    input  => \@args,
-                    defined wantarray()
-                    ? ( output => $result )
-                    : ( no_output => 1 ),
+                my $retrieved = eval {
+                    $self_ref->retrieve(
+                        {   method => $name,
+                            key    => $key,
+                            input  => \@args,
+                        }
+                    );
+                };
+                if ($@) {
+                    croak "Unable to retrieve $name - in $mode mode: $@"
+                        unless $mode eq 'auto';
+                } else {
+
+                    # add cached value into extra arg,
+                    # so original sub will not be called
+                    $_[-1] = $retrieved->{output};
+                    return;
                 }
-            );
-        };
+            }
 
-        $self->_wrapped->{$name} = wrap $name,    #
-            pre  => $pre,                         #
-            post => $post;
+            if ( $mode eq 'record' or $mode eq 'auto' ) {
+
+                my $result;
+                if (wantarray) {
+                    $result = [ $original_fn->(@args) ];
+                } elsif ( defined wantarray ) {
+                    $result = $original_fn->(@args);
+                } else {
+                    $original_fn->(@args);
+                }
+
+                $self_ref->store(
+                    {   method => $name,
+                        key    => $key,
+                        input  => \@args,
+                        defined wantarray()
+                        ? ( output => $result )
+                        : ( no_output => 1 ),
+                    }
+                );
+
+                $_[-1] = $result;
+                return;
+            }
+        };
     }
 
     return $self;
@@ -289,6 +293,11 @@ More configuration options:
             );
         }
     );
+
+=head1 BREAKING CHANGE
+
+v0.07 - the default file storage now uses hyphens instead of colons as package
+name separators.
 
 
 =head1 DESCRIPTION
