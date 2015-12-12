@@ -15,8 +15,8 @@ recommends "Path::Tiny";
 on test => sub {
     requires "Digest::MD5";
     requires "File::Temp";
-    requires "File::Temp";
     requires "Storable";
+    requires "Test::Deep";
     requires "Test::Exception";
     requires "Test::More";
 };

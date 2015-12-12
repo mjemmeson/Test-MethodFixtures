@@ -136,9 +136,9 @@ sub mock {
 
         my $original_fn = \&{$name};
 
-        my $get_key = _get_key_sub($value);
+        my $key_sub = _get_key_sub($value);
 
-        my $pre = sub {
+        $self->_wrapped->{$name} = wrap $name, pre => sub {
 
             my $mode = $self_ref->mode;
 
@@ -147,7 +147,7 @@ sub mock {
             my @args = @_;    # original arguments that method received
             pop @args;        # currently undef, will be the return value
 
-            my $key = $get_key->( { wantarray => wantarray() }, @args );
+            my $key = $key_sub->( { wantarray => wantarray() }, @args );
 
             if ( $mode eq 'playback' or $mode eq 'auto' ) {
 
@@ -163,6 +163,7 @@ sub mock {
                     croak "Unable to retrieve $name - in $mode mode: $@"
                         unless $mode eq 'auto';
                 } else {
+
                     # add cached value into extra arg,
                     # so original sub will not be called
                     $_[-1] = $retrieved->{output};
@@ -195,8 +196,6 @@ sub mock {
                 return;
             }
         };
-
-        $self->_wrapped->{$name} = wrap $name, pre => $pre;
     }
 
     return $self;
