@@ -20,7 +20,8 @@ END { $new_dir->remove_tree if $new_dir->is_dir }
 
 subtest with_no_args => sub {
 SKIP: {
-        skip "Skipping - can't use $pkg", 5;
+        skip "Skipping - can't use $pkg", 5 if $skip_storage_file;
+
         ok my $obj = $class->new(), "new with no args";
         is $obj->mode, 'playback', 'default mode is playback';
         ok my $storage = $obj->storage, "got storage attribtue";
@@ -31,7 +32,7 @@ SKIP: {
 
 subtest with_dir => sub {
 SKIP: {
-        skip "Skipping - can't use $pkg", 5;
+        skip "Skipping - can't use $pkg", 5 if $skip_storage_file;
 
         $new_dir->mkpath;
 

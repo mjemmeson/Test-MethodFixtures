@@ -1,4 +1,7 @@
-use Test::Most;
+use strict;
+use warnings;
+
+use Test::More;
 use Test::MethodFixtures;
 
 note "no args conversion";
