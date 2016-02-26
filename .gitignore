@@ -1,6 +1,7 @@
 Test-MethodFixtures-*
 t/.methodfixtures
 local/
+hook-lexwrap/
 
 /blib/
 /.build/
