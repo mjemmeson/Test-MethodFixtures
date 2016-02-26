@@ -228,7 +228,7 @@ public review and contribution under the terms of the license.
 
 # AUTHOR
 
-Michael Jemmeson &lt;mjemmeson@cpan.org>
+Michael Jemmeson <mjemmeson@cpan.org>
 
 # COPYRIGHT
 
